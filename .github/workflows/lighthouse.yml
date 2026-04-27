@@ -1,0 +1,35 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.14.x http-server
+
+      - name: Serve site
+        run: |
+          npx http-server -p 8765 -c-1 . > /tmp/server.log 2>&1 &
+          sleep 2
+          curl -fsS http://localhost:8765/index.html > /dev/null
+
+      - name: Run Lighthouse CI
+        run: lhci autorun --config=./lighthouserc.json
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}

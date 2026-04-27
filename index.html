@@ -65,7 +65,10 @@
                   </svg>
                   <span id="changeText">+18.74 (+2.01%)</span>
                 </span>
-                <span class="muted">실시간 · 코드 <span id="productCode">—</span></span>
+                <span class="live-badge" id="liveBadge" aria-live="polite">
+                  <span class="live-dot"></span>LIVE
+                </span>
+                <span class="muted">코드 <span id="productCode">—</span></span>
               </div>
             </div>
           </div>
@@ -244,17 +247,19 @@
               </div>
 
               <div class="tab-panel" data-panel="financials" hidden>
-                <table class="fin">
-                  <thead>
-                    <tr>
-                      <th>항목</th>
-                      <th data-fin="0">—</th>
-                      <th data-fin="1">—</th>
-                      <th data-fin="2">—</th>
-                    </tr>
-                  </thead>
-                  <tbody id="finBody"></tbody>
-                </table>
+                <div class="table-scroll">
+                  <table class="fin">
+                    <thead>
+                      <tr>
+                        <th>항목</th>
+                        <th data-fin="0">—</th>
+                        <th data-fin="1">—</th>
+                        <th data-fin="2">—</th>
+                      </tr>
+                    </thead>
+                    <tbody id="finBody"></tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </section>

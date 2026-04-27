@@ -314,6 +314,8 @@ select {
 .stock-head__price {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  row-gap: 6px;
   gap: 12px;
   margin-top: 4px;
 }
@@ -331,6 +333,56 @@ select {
 }
 .change.down svg {
   transform: rotate(180deg);
+}
+
+/* Live ticker badge + price flash */
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  background: var(--up-soft);
+  color: var(--up);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--up);
+  box-shadow: 0 0 0 0 var(--up);
+  animation: livePulse 1.6s ease-out infinite;
+}
+@keyframes livePulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--up) 60%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+.price.flash {
+  animation: priceFlash 0.45s ease-out;
+}
+@keyframes priceFlash {
+  0% {
+    background-color: color-mix(in oklab, var(--toss-blue) 25%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot,
+  .price.flash {
+    animation: none;
+  }
 }
 .stock-head__right {
   display: flex;
@@ -350,6 +402,7 @@ select {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
 }
 .side-col {
   display: flex;
@@ -357,6 +410,7 @@ select {
   gap: 16px;
   position: sticky;
   top: 88px;
+  min-width: 0;
 }
 
 /* ===== Cards ===== */
@@ -1150,10 +1204,16 @@ select {
   color: var(--text-3);
 }
 
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 .holdings-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  min-width: 560px;
 }
 .holdings-table th,
 .holdings-table td {
@@ -1197,10 +1257,10 @@ select {
 }
 @media (max-width: 980px) {
   .grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .grid--2col {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .side-col {
     position: static;

@@ -9,6 +9,7 @@ import {
   fmtChange,
 } from './assets/data.js';
 import { wireThemeToggle, highlightNav } from './assets/theme.js';
+import { subscribeTicker } from './assets/live.js';
 
 wireThemeToggle();
 highlightNav('stock');
@@ -492,3 +493,45 @@ document.getElementById('globalSearch').addEventListener('keydown', e => {
 });
 
 updateTotal();
+
+// ----- Live ticker simulator -----
+const priceEl = document.getElementById('price');
+const changeEl = document.getElementById('change');
+const changeTextEl = document.getElementById('changeText');
+const holdingValueEl = document.getElementById('holdingValue');
+const holdingPnlEl = document.getElementById('holdingPnl');
+
+// Allow tests to crank up tick rate via ?live=fast.
+const liveFast = new URLSearchParams(window.location.search).get('live') === 'fast';
+
+subscribeTicker(
+  stock,
+  ({ price }) => {
+    priceEl.textContent = fmtPrice(price, stock.currency);
+    priceEl.classList.remove('flash');
+    void priceEl.offsetWidth;
+    priceEl.classList.add('flash');
+
+    const abs = price - stock.prevClose;
+    const pct = (abs / stock.prevClose) * 100;
+    changeEl.classList.toggle('up', abs >= 0);
+    changeEl.classList.toggle('down', abs < 0);
+    changeTextEl.textContent = fmtChange(abs, pct);
+
+    const held = HOLDINGS.find(h => h.code === stock.code);
+    if (held && holdingValueEl) {
+      const value = held.qty * price;
+      const cost = held.qty * held.avgPrice;
+      const pnl = value - cost;
+      const pnlPct = (pnl / cost) * 100;
+      holdingValueEl.textContent = fmtPrice(value, stock.currency);
+      holdingPnlEl.classList.toggle('up', pnl >= 0);
+      holdingPnlEl.classList.toggle('down', pnl < 0);
+      holdingPnlEl.textContent =
+        (pnl >= 0 ? '+' : '') +
+        fmtPrice(Math.abs(pnl), stock.currency) +
+        `  (${pnl >= 0 ? '+' : '-'}${Math.abs(pnlPct).toFixed(2)}%)`;
+    }
+  },
+  { interval: liveFast ? 150 : 1500 }
+);
