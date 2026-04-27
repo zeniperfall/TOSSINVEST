@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>홈 — 토스증권 스타일</title>
+    <meta name="theme-color" content="#3182f6" />
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar__inner">
+        <a href="./home.html" class="logo" aria-label="토스증권">
+          <span class="logo__mark">toss</span><span class="logo__sub">증권</span>
+        </a>
+        <nav class="gnb">
+          <a class="gnb__item gnb__item--active" data-page="home" href="./home.html">홈</a>
+          <a class="gnb__item" data-page="stock" href="./index.html">주식</a>
+          <a class="gnb__item" data-page="search" href="./search.html">검색</a>
+          <a class="gnb__item" data-page="portfolio" href="./portfolio.html">내 자산</a>
+        </nav>
+        <div class="topbar__right">
+          <button class="iconbtn" data-theme-toggle aria-label="테마 전환" aria-pressed="false">
+            <span data-theme-icon>🌙</span>
+          </button>
+          <button class="btn btn--ghost">로그인</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="page">
+      <div class="container">
+        <section class="hero">
+          <div>
+            <div class="hero__eyebrow">오늘의 시장</div>
+            <h1 class="hero__title">미국장이 강하게 출발했어요</h1>
+            <p class="hero__sub">AI 반도체 섹터를 중심으로 매수세가 유입되고 있습니다.</p>
+          </div>
+          <a class="btn btn--primary" href="./index.html?focusedProductCode=NAS0221219002"
+            >오늘의 종목 보기 →</a
+          >
+        </section>
+
+        <section class="indices" id="indices"></section>
+
+        <section class="card">
+          <div class="card__row">
+            <h2 class="card__title" style="margin: 0">실시간 인기 종목</h2>
+            <span class="muted">상위 5개</span>
+          </div>
+          <ul class="rank" id="trending"></ul>
+        </section>
+
+        <section class="grid grid--2col">
+          <div class="card">
+            <h2 class="card__title">상승 종목</h2>
+            <ul class="movers" id="gainers"></ul>
+          </div>
+          <div class="card">
+            <h2 class="card__title">하락 종목</h2>
+            <ul class="movers" id="losers"></ul>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="foot">
+      <div class="foot__inner">학습용 데모 · 토스증권 디자인 스타일</div>
+    </footer>
+
+    <script type="module" src="./assets/home.js"></script>
+  </body>
+</html>

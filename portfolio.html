@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>내 자산 — 토스증권 스타일</title>
+    <meta name="theme-color" content="#3182f6" />
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar__inner">
+        <a href="./home.html" class="logo" aria-label="토스증권">
+          <span class="logo__mark">toss</span><span class="logo__sub">증권</span>
+        </a>
+        <nav class="gnb">
+          <a class="gnb__item" data-page="home" href="./home.html">홈</a>
+          <a class="gnb__item" data-page="stock" href="./index.html">주식</a>
+          <a class="gnb__item" data-page="search" href="./search.html">검색</a>
+          <a class="gnb__item gnb__item--active" data-page="portfolio" href="./portfolio.html"
+            >내 자산</a
+          >
+        </nav>
+        <div class="topbar__right">
+          <button class="iconbtn" data-theme-toggle aria-label="테마 전환" aria-pressed="false">
+            <span data-theme-icon>🌙</span>
+          </button>
+          <button class="btn btn--ghost">로그인</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="page">
+      <div class="container">
+        <section class="card portfolio-summary">
+          <div>
+            <div class="muted">총 평가 금액</div>
+            <div class="portfolio-summary__value" id="totalValue">—</div>
+            <div class="portfolio-summary__pnl" id="totalPnl">—</div>
+          </div>
+          <div class="portfolio-summary__pie">
+            <div class="pie" id="pie"></div>
+            <ul class="pie-legend" id="pieLegend"></ul>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 class="card__title">보유 종목</h2>
+          <table class="holdings-table">
+            <thead>
+              <tr>
+                <th>종목</th>
+                <th>수량</th>
+                <th>평균 단가</th>
+                <th>현재가</th>
+                <th>평가 금액</th>
+                <th>평가 손익</th>
+              </tr>
+            </thead>
+            <tbody id="holdingsBody"></tbody>
+          </table>
+        </section>
+      </div>
+    </main>
+
+    <footer class="foot">
+      <div class="foot__inner">학습용 데모 · 토스증권 디자인 스타일</div>
+    </footer>
+
+    <script type="module" src="./assets/portfolio.js"></script>
+  </body>
+</html>

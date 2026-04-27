@@ -1,0 +1,20 @@
+{
+  "name": "tossinvest-style",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Toss Invest style web demo (multi-page, dark mode, mock market data)",
+  "type": "module",
+  "scripts": {
+    "serve": "http-server -p 8765 -c-1 .",
+    "lint": "eslint \"**/*.js\" --ignore-pattern node_modules",
+    "format": "prettier --write \"**/*.{js,css,html,json,md}\" --ignore-path .gitignore",
+    "format:check": "prettier --check \"**/*.{js,css,html,json,md}\" --ignore-path .gitignore",
+    "verify": "node tests/verify.mjs"
+  },
+  "devDependencies": {
+    "eslint": "^10.0.0",
+    "http-server": "^14.1.1",
+    "playwright": "^1.56.0",
+    "prettier": "^3.0.0"
+  }
+}

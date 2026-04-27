@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>종목 검색 — 토스증권 스타일</title>
+    <meta name="theme-color" content="#3182f6" />
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar__inner">
+        <a href="./home.html" class="logo" aria-label="토스증권">
+          <span class="logo__mark">toss</span><span class="logo__sub">증권</span>
+        </a>
+        <nav class="gnb">
+          <a class="gnb__item" data-page="home" href="./home.html">홈</a>
+          <a class="gnb__item" data-page="stock" href="./index.html">주식</a>
+          <a class="gnb__item gnb__item--active" data-page="search" href="./search.html">검색</a>
+          <a class="gnb__item" data-page="portfolio" href="./portfolio.html">내 자산</a>
+        </nav>
+        <div class="topbar__right">
+          <button class="iconbtn" data-theme-toggle aria-label="테마 전환" aria-pressed="false">
+            <span data-theme-icon>🌙</span>
+          </button>
+          <button class="btn btn--ghost">로그인</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="page">
+      <div class="container">
+        <section class="search-hero">
+          <h1>종목 검색</h1>
+          <label class="search search--lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+              <path
+                d="m20 20-3.5-3.5"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+            <input
+              id="searchInput"
+              type="search"
+              placeholder="종목명, 티커, 또는 productCode로 검색"
+              autofocus
+            />
+          </label>
+          <div class="search-hint muted">예) 엔비디아, NVDA, NAS0221219002</div>
+        </section>
+
+        <section class="card">
+          <h2 class="card__title">검색 결과 <span class="muted small" id="resultCount"></span></h2>
+          <ul class="rank" id="searchResults"></ul>
+        </section>
+      </div>
+    </main>
+
+    <footer class="foot">
+      <div class="foot__inner">학습용 데모 · 토스증권 디자인 스타일</div>
+    </footer>
+
+    <script type="module" src="./assets/search.js"></script>
+  </body>
+</html>
