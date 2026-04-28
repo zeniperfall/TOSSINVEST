@@ -804,6 +804,78 @@ const afterSwipeUrl = page.url();
 if (!/index\.html/.test(afterSwipeUrl)) fail('swipe nav did not advance: ' + afterSwipeUrl);
 else ok('swipe forward navigates home → stock');
 
+// ========================== 27. STOOQ LIVE DATA SOURCE ==========================
+console.log('--- 27. Stooq live source (route-mocked) ---');
+
+// Intercept all stooq.com requests with deterministic CSV.
+const STOOQ_QUOTE_CSV =
+  'Symbol,Date,Time,Open,High,Low,Close,Volume\n' +
+  'NVDA.US,2026-04-28,15:59:59,950.10,955.20,945.50,952.55,40123456';
+const STOOQ_SERIES_CSV =
+  'Date,Open,High,Low,Close,Volume\n' +
+  '2026-04-21,920,925,918,922,30000000\n' +
+  '2026-04-22,922,930,920,928,32000000\n' +
+  '2026-04-23,928,935,925,933,28000000\n' +
+  '2026-04-24,933,940,930,938,33000000\n' +
+  '2026-04-25,938,945,935,942,30500000\n' +
+  '2026-04-26,942,948,940,946,31000000\n' +
+  '2026-04-27,946,953,944,948.32,42700000\n' +
+  '2026-04-28,948,956,946,952.55,40123456';
+
+await page.route('https://stooq.com/q/l/**', route => {
+  route.fulfill({ status: 200, contentType: 'text/csv', body: STOOQ_QUOTE_CSV });
+});
+await page.route('https://stooq.com/q/d/l/**', route => {
+  route.fulfill({ status: 200, contentType: 'text/csv', body: STOOQ_SERIES_CSV });
+});
+
+// Switch source to stooq via localStorage and load detail page.
+await page.evaluate(() => localStorage.setItem('tossinvest:source', 'stooq'));
+await page.goto(`${BASE}/index.html?focusedProductCode=NAS0221219002`, { waitUntil: 'load' });
+await page.waitForSelector('.chart .line');
+// Wait for async live load to apply.
+await page.waitForTimeout(400);
+
+const livePrice = await page.textContent('#price');
+if (!/952\.55/.test(livePrice)) fail('live quote not applied: ' + livePrice);
+else ok('live quote applied to header: ' + livePrice);
+
+const sourceBtnText = await page.textContent('[data-source-toggle]');
+if (!/STOOQ/i.test(sourceBtnText)) fail('source toggle not reflecting stooq: ' + sourceBtnText);
+else ok('source toggle shows STOOQ');
+
+// Verify the chart re-rendered with live series (line path d should differ from mock).
+const liveD = await page.locator('.chart .line').getAttribute('d');
+await page.evaluate(() => localStorage.setItem('tossinvest:source', 'mock'));
+await page.reload({ waitUntil: 'load' });
+await page.waitForSelector('.chart .line');
+await page.waitForTimeout(150);
+const mockD = await page.locator('.chart .line').getAttribute('d');
+if (liveD === mockD) fail('live and mock chart paths identical — live data not used');
+else ok('chart line path differs between live and mock');
+
+// Source toggle button is clickable and persists choice.
+const initialBtn = await page.textContent('[data-source-toggle]');
+if (!/MOCK/i.test(initialBtn)) fail('expected MOCK badge initially: ' + initialBtn);
+else ok('source toggle defaults to MOCK after reset');
+
+// Stooq fallback when API fails: route returns 500.
+await page.unroute('https://stooq.com/q/l/**');
+await page.unroute('https://stooq.com/q/d/l/**');
+await page.route('https://stooq.com/**', route => route.fulfill({ status: 500, body: 'fail' }));
+await page.evaluate(() => localStorage.setItem('tossinvest:source', 'stooq'));
+await page.goto(`${BASE}/index.html?focusedProductCode=NAS0221219002`, { waitUntil: 'load' });
+await page.waitForSelector('.chart .line');
+await page.waitForTimeout(300);
+const fallbackPrice = await page.textContent('#price');
+if (!/948\.32/.test(fallbackPrice))
+  fail('stooq 500 should fall back to mock NVDA $948.32, got: ' + fallbackPrice);
+else ok('stooq 500 → graceful mock fallback');
+
+// Reset for downstream tests.
+await page.unroute('https://stooq.com/**');
+await page.evaluate(() => localStorage.removeItem('tossinvest:source'));
+
 await browser.close();
 
 if (errors.length) {

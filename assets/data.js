@@ -686,9 +686,20 @@ function round(v, currency) {
 }
 
 // Build OHLC candle series for candlestick mode. Derived from buildSeries
-// by sampling N consecutive ticks per candle.
-export function buildCandles(stock, range) {
-  const series = buildSeries(stock, range);
+// by sampling N consecutive ticks per candle. Optional `baseSeries` override
+// lets callers feed pre-fetched real data instead of mock generators.
+export function buildCandles(stock, range, baseSeries) {
+  const series = baseSeries || buildSeries(stock, range);
+  // If the source already provides OHLC per row (live data), pass through.
+  if (series[0] && series[0].open != null && series[0].high != null) {
+    return series.map(s => ({
+      date: s.date,
+      open: s.open,
+      high: s.high,
+      low: s.low,
+      close: s.price,
+    }));
+  }
   const groupSize = Math.max(2, Math.floor(series.length / 30));
   const candles = [];
   for (let i = 0; i < series.length; i += groupSize) {
@@ -705,8 +716,16 @@ export function buildCandles(stock, range) {
 }
 
 // Synthetic per-bucket volume (correlated with price range) for the volume bar chart.
-export function buildVolume(stock, range) {
-  const candles = buildCandles(stock, range);
+// When real series with per-row volume is provided, use that directly.
+export function buildVolume(stock, range, baseSeries) {
+  if (baseSeries && baseSeries[0] && baseSeries[0].volume != null) {
+    return baseSeries.map(s => ({
+      date: s.date,
+      volume: s.volume,
+      up: s.price >= (s.open ?? s.price),
+    }));
+  }
+  const candles = buildCandles(stock, range, baseSeries);
   return candles.map(c => {
     const range_ = (c.high - c.low) / Math.max(c.open, 0.0001);
     const baseVol = stock.currency === 'KRW' ? 50000 : 80000;

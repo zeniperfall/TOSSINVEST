@@ -1,7 +1,7 @@
 // Tiny offline-first service worker. Caches the app shell and serves it
 // from cache, falling back to network for everything else.
 
-const CACHE = 'tossinvest-v1';
+const CACHE = 'tossinvest-v2';
 const SHELL = [
   './',
   './home.html',
@@ -25,6 +25,13 @@ const SHELL = [
   './assets/portfolio.js',
   './assets/search.js',
   './assets/history.js',
+  './assets/i18n.js',
+  './assets/gestures.js',
+  './assets/backtest.js',
+  './assets/error-reporter.js',
+  './assets/quote-source.js',
+  './assets/sources/mock.js',
+  './assets/sources/stooq.js',
 ];
 
 self.addEventListener('install', event => {

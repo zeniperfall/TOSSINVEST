@@ -1597,3 +1597,17 @@ select {
   font-size: 16px;
   font-weight: 800;
 }
+
+/* Data source toggle: visually distinct when live source is active */
+[data-source-toggle] {
+  letter-spacing: 0.04em;
+}
+[data-source-toggle][data-source='stooq'] {
+  background: var(--up-soft);
+  color: var(--up);
+  border: 1px solid color-mix(in oklab, var(--up) 30%, transparent);
+}
+[data-source-toggle][data-source='mock'] {
+  background: var(--line);
+  color: var(--text-3);
+}

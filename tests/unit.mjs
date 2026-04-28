@@ -172,3 +172,82 @@ test('backtest: handles empty/single series gracefully', async () => {
   assert.equal(backtest([]), null);
   assert.equal(backtest([{ price: 100 }]), null);
 });
+
+test('stooq: symbolFor maps NASDAQ → .us, KOSPI → .kr', async () => {
+  const { symbolFor } = await import('../assets/sources/stooq.js');
+  assert.equal(symbolFor({ ticker: 'NVDA', market: '나스닥' }), 'nvda.us');
+  assert.equal(symbolFor({ ticker: 'AAPL', market: '나스닥' }), 'aapl.us');
+  assert.equal(symbolFor({ ticker: '005930', market: '코스피' }), '005930.kr');
+  assert.equal(symbolFor({ ticker: 'XYZ', market: 'unknown' }), null);
+  assert.equal(symbolFor(null), null);
+});
+
+test('stooq: parseQuoteCsv extracts OHLCV from light quote format', async () => {
+  const { parseQuoteCsv } = await import('../assets/sources/stooq.js');
+  const csv =
+    'Symbol,Date,Time,Open,High,Low,Close,Volume\n' +
+    'NVDA.US,2026-04-28,15:59:59,950.00,955.00,945.00,952.50,40123456';
+  const r = parseQuoteCsv(csv);
+  assert.equal(r.open, 950);
+  assert.equal(r.high, 955);
+  assert.equal(r.low, 945);
+  assert.equal(r.price, 952.5);
+  assert.equal(r.volume, 40123456);
+  assert.equal(r.date, '2026-04-28');
+});
+
+test('stooq: parseQuoteCsv rejects empty or N/D rows', async () => {
+  const { parseQuoteCsv } = await import('../assets/sources/stooq.js');
+  assert.throws(() => parseQuoteCsv(''), /empty/);
+  assert.throws(
+    () =>
+      parseQuoteCsv(
+        'Symbol,Date,Time,Open,High,Low,Close,Volume\nNVDA.US,N/D,N/D,N/D,N/D,N/D,N/D,N/D'
+      ),
+    /N\/D/
+  );
+});
+
+test('stooq: parseSeriesCsv returns sorted OHLC rows with Date objects', async () => {
+  const { parseSeriesCsv } = await import('../assets/sources/stooq.js');
+  const csv =
+    'Date,Open,High,Low,Close,Volume\n' +
+    '2026-04-26,940.0,945.0,938.0,942.5,30000000\n' +
+    '2026-04-27,943.0,950.0,941.0,948.32,42700000';
+  const rows = parseSeriesCsv(csv);
+  assert.equal(rows.length, 2);
+  assert.ok(rows[0].date instanceof Date);
+  assert.equal(rows[0].price, 942.5);
+  assert.equal(rows[1].price, 948.32);
+  assert.equal(rows[1].open, 943);
+  assert.equal(rows[1].volume, 42700000);
+});
+
+test('stooq: parseSeriesCsv throws on empty data', async () => {
+  const { parseSeriesCsv } = await import('../assets/sources/stooq.js');
+  assert.throws(() => parseSeriesCsv('Date,Open,High,Low,Close,Volume\n'), /empty/);
+});
+
+test('buildCandles: passes through pre-fetched OHLC series', async () => {
+  const { buildCandles } = await import('../assets/data.js');
+  const baseSeries = [
+    { date: new Date('2026-04-26'), open: 940, high: 945, low: 938, price: 942.5 },
+    { date: new Date('2026-04-27'), open: 943, high: 950, low: 941, price: 948.32 },
+  ];
+  const candles = buildCandles({ ticker: 'NVDA' }, '1W', baseSeries);
+  assert.equal(candles.length, 2);
+  assert.equal(candles[0].open, 940);
+  assert.equal(candles[0].close, 942.5);
+});
+
+test('buildVolume: passes through real volume when available', async () => {
+  const { buildVolume } = await import('../assets/data.js');
+  const baseSeries = [
+    { date: new Date(), open: 100, price: 102, volume: 1000 },
+    { date: new Date(), open: 102, price: 99, volume: 2000 },
+  ];
+  const bars = buildVolume({ currency: 'USD' }, '1W', baseSeries);
+  assert.equal(bars[0].volume, 1000);
+  assert.equal(bars[0].up, true);
+  assert.equal(bars[1].up, false);
+});

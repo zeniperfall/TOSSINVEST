@@ -26,6 +26,15 @@ import {
 import { wireLocaleToggle, t, onLocaleChange } from './assets/i18n.js';
 import { wireGestures } from './assets/gestures.js';
 import { backtest } from './assets/backtest.js';
+import {
+  getQuote as fetchQuote,
+  getSeries as fetchSeries,
+  getSource,
+  cycleSource,
+  sourceLabel,
+  getLastUsedSource,
+  onSourceChange,
+} from './assets/quote-source.js';
 import './assets/error-reporter.js';
 
 wireLocaleToggle();
@@ -38,7 +47,17 @@ wireAutocomplete();
 // ----- Resolve focused stock from URL -----
 const params = new URLSearchParams(window.location.search);
 const focusedCode = params.get('focusedProductCode') || DEFAULT_CODE;
-const stock = STOCKS[focusedCode] || STOCKS[DEFAULT_CODE];
+// Working copy: live data overrides may mutate price/open/high/low/volume
+// without polluting the static catalog.
+const baseStock = STOCKS[focusedCode] || STOCKS[DEFAULT_CODE];
+const stock = { ...baseStock };
+
+// Cache of fetched series per range. When populated, renderChart prefers it
+// over buildSeries() (mock generator).
+const liveSeries = {};
+function seriesFor(range) {
+  return liveSeries[range] || buildSeries(stock, range);
+}
 
 // ----- Hydrate header / metrics / profile / financials -----
 function hydrate() {
@@ -170,7 +189,7 @@ function fmtTime(d, range) {
 
 function renderChart(range) {
   currentRange = range;
-  const data = buildSeries(stock, range);
+  const data = seriesFor(range);
   const prices = data.map(d => d.price);
   const min = Math.min(...prices);
   const max = Math.max(...prices);
@@ -248,7 +267,7 @@ function renderChart(range) {
     svg.appendChild(line);
   } else {
     // Candle mode
-    const candles = buildCandles(stock, range);
+    const candles = buildCandles(stock, range, seriesFor(range));
     const candleW = Math.max(2, (usableW / candles.length) * 0.7);
     candles.forEach((c, i) => {
       const x = VB.padX + ((i + 0.5) / candles.length) * usableW;
@@ -419,7 +438,7 @@ const volSvg = document.getElementById('volumeChart');
 const VOL_VB = { w: 720, h: 60, padX: 12, padTop: 4, padBottom: 4 };
 function renderVolume(range) {
   while (volSvg.firstChild) volSvg.removeChild(volSvg.firstChild);
-  const bars = buildVolume(stock, range);
+  const bars = buildVolume(stock, range, seriesFor(range));
   const max = Math.max(...bars.map(b => b.volume));
   const usableW = VOL_VB.w - VOL_VB.padX * 2;
   const usableH = VOL_VB.h - VOL_VB.padTop - VOL_VB.padBottom;
@@ -444,7 +463,7 @@ function renderAll(range) {
 }
 
 function renderBacktest(range) {
-  const series = buildSeries(stock, range);
+  const series = seriesFor(range);
   const r = backtest(series);
   const el = document.getElementById('backtest');
   if (!el || !r) return;
@@ -468,6 +487,88 @@ document.querySelectorAll('.range__btn').forEach(btn => {
 });
 
 renderAll(currentRange);
+
+// ----- Live data integration -----
+async function loadLiveQuote() {
+  try {
+    const { result, source } = await fetchQuote(stock);
+    if (source === 'mock') return; // nothing to overlay
+    if (isFinite(result.price)) stock.price = result.price;
+    if (isFinite(result.open)) stock.open = result.open;
+    if (isFinite(result.high)) stock.high = result.high;
+    if (isFinite(result.low)) stock.low = result.low;
+    if (isFinite(result.volume) && result.volume > 0) {
+      stock.volume = formatVolume(result.volume);
+    }
+    hydrate();
+  } catch (e) {
+    console.warn('[live] quote load skipped:', e.message);
+  }
+}
+
+async function loadLiveSeries(range) {
+  if (liveSeries[range]) return;
+  try {
+    const { result, source } = await fetchSeries(stock, range);
+    if (source === 'mock') return;
+    if (Array.isArray(result) && result.length > 0) {
+      liveSeries[range] = result;
+      renderAll(range);
+    }
+  } catch (e) {
+    console.warn('[live] series load skipped:', e.message);
+  }
+}
+
+function formatVolume(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return String(n);
+}
+
+// Source badge & toggle.
+const sourceBtn = document.querySelector('[data-source-toggle]');
+function reflectSourceBadge() {
+  if (!sourceBtn) return;
+  const current = getSource();
+  sourceBtn.textContent = sourceLabel(current).toUpperCase();
+  sourceBtn.dataset.source = current;
+}
+reflectSourceBadge();
+if (sourceBtn) {
+  sourceBtn.addEventListener('click', () => {
+    cycleSource();
+    location.reload();
+  });
+}
+
+// Reflect actual data source in use after fallback decisions.
+onSourceChange(() => {
+  if (!sourceBtn) return;
+  const used = getLastUsedSource();
+  sourceBtn.dataset.usedSource = used;
+  // If preferred source failed and we fell back, append a hint.
+  const preferred = getSource();
+  if (used !== preferred) {
+    sourceBtn.title = `Selected: ${sourceLabel(preferred)} · Active: ${sourceLabel(used)} (fallback)`;
+  } else {
+    sourceBtn.title = `Data source: ${sourceLabel(used)}`;
+  }
+});
+
+// Kick off live load if a real source is selected.
+if (getSource() !== 'mock') {
+  loadLiveQuote();
+  loadLiveSeries(currentRange);
+}
+
+// When the user changes range, fetch the new range's series too.
+document.querySelectorAll('.range__btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (getSource() !== 'mock') loadLiveSeries(btn.dataset.range);
+  });
+});
 
 // Re-render i18n-dependent dynamic content when locale changes.
 onLocaleChange(() => {
