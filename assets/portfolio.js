@@ -1,8 +1,13 @@
 import { STOCKS, HOLDINGS, fmtPrice } from './data.js';
 import { wireThemeToggle, highlightNav } from './theme.js';
+import { wireLocaleToggle } from './i18n.js';
+import { wireGestures } from './gestures.js';
+import './error-reporter.js';
 import { wireAutocomplete } from './autocomplete.js';
 
 wireThemeToggle();
+wireLocaleToggle();
+wireGestures('portfolio');
 highlightNav('portfolio');
 wireAutocomplete();
 

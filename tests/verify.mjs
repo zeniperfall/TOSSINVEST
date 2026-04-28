@@ -669,6 +669,95 @@ if (darkFailures.length > 0)
 else ok('dark mode passes WCAG AA contrast on key selectors');
 await page.evaluate(() => localStorage.removeItem('tossinvest:theme'));
 
+// ========================== 23. I18N LOCALE SWITCH ==========================
+console.log('--- 23. i18n locale switch ---');
+await page.goto(`${BASE}/home.html`, { waitUntil: 'load' });
+// Force KO start regardless of browser locale, then verify cycle.
+await page.evaluate(() => localStorage.setItem('tossinvest:locale', 'ko'));
+await page.reload({ waitUntil: 'load' });
+
+const koHomeText = await page.textContent('.gnb__item[data-page="home"]');
+if (koHomeText !== '홈') fail('initial KO label wrong: ' + koHomeText);
+else ok('locale=ko renders KO');
+
+// Cycle is ko → en → ja → ko.
+await page.click('[data-locale-toggle]');
+await page.waitForTimeout(60);
+const enHomeText = await page.textContent('.gnb__item[data-page="home"]');
+if (enHomeText !== 'Home') fail('EN label wrong after click: ' + enHomeText);
+else ok('locale toggle switches ko → en');
+
+await page.click('[data-locale-toggle]');
+await page.waitForTimeout(60);
+const jaHomeText = await page.textContent('.gnb__item[data-page="home"]');
+if (jaHomeText !== 'ホーム') fail('JA label wrong after click: ' + jaHomeText);
+else ok('locale toggle switches en → ja');
+
+// Persists across navigation.
+await page.goto(`${BASE}/portfolio.html`, { waitUntil: 'load' });
+const portfolioJaNav = await page.textContent('.gnb__item[data-page="home"]');
+if (portfolioJaNav !== 'ホーム') fail('locale did not persist on navigation');
+else ok('locale persists across pages');
+
+// document.documentElement.lang updates too.
+const docLang = await page.getAttribute('html', 'lang');
+if (docLang !== 'ja') fail('html lang attribute not updated: ' + docLang);
+else ok('html lang reflects locale');
+
+await page.evaluate(() => localStorage.removeItem('tossinvest:locale'));
+
+// ========================== 24. BACKTEST CARD ==========================
+console.log('--- 24. Backtest results ---');
+await page.goto(`${BASE}/index.html?focusedProductCode=NAS0221219002`, { waitUntil: 'load' });
+await page.waitForSelector('.chart .line');
+const backtestCells = await page.$$('#backtest > div');
+if (backtestCells.length < 6) fail('backtest cards missing: ' + backtestCells.length);
+else ok(`backtest renders ${backtestCells.length} metrics`);
+
+// Switch range — backtest should re-render.
+const beforeBt = await page.textContent('#backtest');
+await page.click('.range__btn[data-range="1Y"]');
+await page.waitForTimeout(150);
+const afterBt = await page.textContent('#backtest');
+if (beforeBt === afterBt) fail('backtest did not re-render on range change');
+else ok('backtest re-renders on range change');
+
+// ========================== 25. ERROR REPORTER ==========================
+console.log('--- 25. Error reporter ---');
+const errLogs = [];
+page.on('console', msg => {
+  if (msg.text().startsWith('[errors] flushing')) errLogs.push(msg.text());
+});
+await page.goto(`${BASE}/home.html`, { waitUntil: 'load' });
+await page.waitForTimeout(300);
+// Capture an error via the test hook.
+await page.evaluate(() => {
+  window.__captureError(new Error('test-induced'), { source: 'verify' });
+});
+// Trigger a visibilitychange to flush.
+await page.evaluate(() => {
+  Object.defineProperty(document, 'visibilityState', {
+    configurable: true,
+    get: () => 'hidden',
+  });
+  document.dispatchEvent(new Event('visibilitychange'));
+});
+await page.waitForTimeout(150);
+if (errLogs.length === 0) fail('error reporter did not flush');
+else ok(`error reporter flushed (${errLogs.length} batches)`);
+
+// ========================== 26. SWIPE NAV ==========================
+console.log('--- 26. Swipe navigation ---');
+await page.goto(`${BASE}/home.html`, { waitUntil: 'load' });
+const navPromise = page.waitForURL(/index\.html/, { timeout: 5000 });
+await page.evaluate(() =>
+  import('./assets/gestures.js').then(m => m._testNavigate('home', 1))
+);
+await navPromise;
+const afterSwipeUrl = page.url();
+if (!/index\.html/.test(afterSwipeUrl)) fail('swipe nav did not advance: ' + afterSwipeUrl);
+else ok('swipe forward navigates home → stock');
+
 await browser.close();
 
 if (errors.length) {

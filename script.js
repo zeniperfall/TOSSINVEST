@@ -23,6 +23,13 @@ import {
   notify,
   crossed,
 } from './assets/notification.js';
+import { wireLocaleToggle } from './assets/i18n.js';
+import { wireGestures } from './assets/gestures.js';
+import { backtest } from './assets/backtest.js';
+import './assets/error-reporter.js';
+
+wireLocaleToggle();
+wireGestures('stock');
 
 wireThemeToggle();
 highlightNav('stock');
@@ -431,11 +438,31 @@ function renderVolume(range) {
 function renderAll(range) {
   renderChart(range);
   renderVolume(range);
+  renderBacktest(range);
 }
 
-// Override range button + toggle handlers to also re-render volume.
+function renderBacktest(range) {
+  const series = buildSeries(stock, range);
+  const r = backtest(series);
+  const el = document.getElementById('backtest');
+  if (!el || !r) return;
+  const upClass = v => (v >= 0 ? 'up' : 'down');
+  el.innerHTML = `
+    <div><span>총 수익률</span><strong class="${upClass(r.totalReturn)}">${r.totalReturn >= 0 ? '+' : ''}${r.totalReturn.toFixed(2)}%</strong></div>
+    <div><span>최대 낙폭(MDD)</span><strong class="down">${r.maxDrawdown.toFixed(2)}%</strong></div>
+    <div><span>변동성 (연환산)</span><strong>${r.volatility.toFixed(2)}%</strong></div>
+    <div><span>샤프 비율</span><strong class="${upClass(r.sharpe)}">${r.sharpe.toFixed(2)}</strong></div>
+    <div><span>구간 시작</span><strong>${fmtPrice(r.start, stock.currency)}</strong></div>
+    <div><span>구간 종료</span><strong>${fmtPrice(r.end, stock.currency)}</strong></div>
+  `;
+}
+
+// Override range button + toggle handlers to also re-render volume + backtest.
 document.querySelectorAll('.range__btn').forEach(btn => {
-  btn.addEventListener('click', () => renderVolume(btn.dataset.range));
+  btn.addEventListener('click', () => {
+    renderVolume(btn.dataset.range);
+    renderBacktest(btn.dataset.range);
+  });
 });
 
 renderAll(currentRange);

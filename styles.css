@@ -1536,3 +1536,64 @@ select {
 .link-btn:hover {
   color: var(--up);
 }
+
+/* Compact ghost button used for the locale switcher */
+.btn--xs {
+  padding: 6px 10px;
+  font-size: 12px;
+  min-width: 38px;
+  border-radius: 8px;
+}
+
+/* Pull-to-refresh indicator */
+.ptr-indicator {
+  position: fixed;
+  top: 64px;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-2);
+  box-shadow: var(--shadow-md);
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
+}
+.ptr-indicator.is-visible {
+  transform: translate(-50%, 12px);
+  opacity: 1;
+}
+.ptr-indicator.is-active {
+  color: var(--toss-blue);
+}
+
+/* Backtest card */
+.backtest {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.backtest > div {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 12px;
+}
+.backtest span {
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+}
+.backtest strong {
+  font-size: 16px;
+  font-weight: 800;
+}

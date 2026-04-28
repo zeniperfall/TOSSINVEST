@@ -1,9 +1,14 @@
 import { STOCKS, MARKET, fmtPrice } from './data.js';
 import { wireThemeToggle, highlightNav } from './theme.js';
+import { wireLocaleToggle } from './i18n.js';
+import { wireGestures } from './gestures.js';
+import './error-reporter.js';
 import { wireAutocomplete } from './autocomplete.js';
 import { getWatchlist, subscribe as subscribeWatchlist } from './watchlist.js';
 
 wireThemeToggle();
+wireLocaleToggle();
+wireGestures('home');
 highlightNav('home');
 wireAutocomplete();
 

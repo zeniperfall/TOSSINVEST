@@ -146,3 +146,29 @@ test('crossed: detects downward target crossing only on transition', async () =>
   assert.equal(crossed(95, 90, 98, 'below'), false);
   assert.equal(crossed(101, 100, 98, 'below'), false);
 });
+
+test('backtest: computes return, drawdown, volatility, sharpe', async () => {
+  const { backtest } = await import('../assets/backtest.js');
+  // Steady up trend: 100 → 110 with no drawdown.
+  const series = Array.from({ length: 11 }, (_, i) => ({ price: 100 + i }));
+  const r = backtest(series);
+  assert.equal(r.start, 100);
+  assert.equal(r.end, 110);
+  assert.ok(r.totalReturn > 9.99 && r.totalReturn < 10.01);
+  assert.equal(r.maxDrawdown, 0);
+  assert.ok(r.volatility > 0);
+});
+
+test('backtest: detects max drawdown', async () => {
+  const { backtest } = await import('../assets/backtest.js');
+  // Up then down: peak 200, trough 100 → -50% drawdown.
+  const series = [{ price: 100 }, { price: 200 }, { price: 100 }];
+  const r = backtest(series);
+  assert.ok(Math.abs(r.maxDrawdown - -50) < 0.01, 'maxDrawdown=-50%');
+});
+
+test('backtest: handles empty/single series gracefully', async () => {
+  const { backtest } = await import('../assets/backtest.js');
+  assert.equal(backtest([]), null);
+  assert.equal(backtest([{ price: 100 }]), null);
+});

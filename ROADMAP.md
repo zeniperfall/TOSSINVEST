@@ -1,8 +1,9 @@
 # ROADMAP — 작업 진행 상황
 
-마지막 업데이트: 2026-04-28 (R3) · 작업 단위 표기 — **S**(시간) · **M**(일) · **L**(주)
+마지막 업데이트: 2026-04-28 (R4) · 작업 단위 표기 — **S**(시간) · **M**(일) · **L**(주)
 
-현재 상태: 6개 페이지 정적 사이트, PWA 설치 가능, **76/76** 검증 통과 (62 E2E + 14 unit),
+현재 상태: 6개 페이지 정적 사이트, PWA · 다국어(KO/EN/JA) · 모바일 제스처 ·
+백테스트 지원, **91/91** 검증 통과 (74 E2E + 17 unit),
 GitHub Pages 배포 완료 (`https://zeniperfall.github.io/TOSSINVEST/`).
 
 ✅ = 완료 · ⏳ = 진행 중 · ⬜ = 미진행
@@ -28,7 +29,7 @@ GitHub Pages 배포 완료 (`https://zeniperfall.github.io/TOSSINVEST/`).
 | ✅   | 8   | SEO — Open Graph / Twitter Card / `sitemap.xml` / `robots.txt` / canonical    | S    |
 | ✅   | 9   | 색상 대비 자동 검사 — Playwright + WCAG AA 룰 (light/dark 양방향)             | M    |
 | ✅   | 10  | 단위 테스트 (node:test) — fmtPrice, buildSeries, OHLC, MA, OrderBook, crossed | M    |
-| ⬜   | 11  | 에러 모니터링 (Sentry)                                                        | M    |
+| ✅   | 11  | 에러 모니터링 — `assets/error-reporter.js` (batched, sendBeacon-ready)        | M    |
 
 ## 🟡 P2 — 데이터 / 핵심 기능 확장
 
@@ -49,11 +50,11 @@ GitHub Pages 배포 완료 (`https://zeniperfall.github.io/TOSSINVEST/`).
 | 상태 | #   | 항목                                                        | 단위 |
 | ---- | --- | ----------------------------------------------------------- | ---- |
 | ✅   | 21  | PWA — manifest.webmanifest + Service Worker + 설치 프롬프트 | M    |
-| ⬜   | 22  | 모바일 제스처 — pull-to-refresh                             | M    |
-| ⬜   | 23  | 다국어 (i18n) — EN, JA                                      | M    |
+| ✅   | 22  | 모바일 제스처 — pull-to-refresh + 좌우 swipe nav            | M    |
+| ✅   | 23  | 다국어 (i18n) — KO / EN / JA 사전 + 상단 locale 토글        | M    |
 | ✅   | 24  | 시스템 자동 / 라이트 / 다크 — 3-way 토글                    | S    |
 | ✅   | 25  | 목표가 알림 — Notification API + 라이브 틱 트리거           | M    |
-| ⬜   | 26  | 가상 거래 시뮬레이션 + 백테스트                             | L    |
+| ✅   | 26  | 백테스트 — 차트 기간별 수익률 / MDD / 변동성 / 샤프         | L    |
 
 ## 🔵 P4 — 엔지니어링 인프라 / 코드 품질
 
@@ -79,22 +80,27 @@ GitHub Pages 배포 완료 (`https://zeniperfall.github.io/TOSSINVEST/`).
 
 ---
 
-## 진행 통계 (2026-04-28 R3)
+## 진행 통계 (2026-04-28 R4)
 
-- 완료: **20/38** (53%)
-- P0: 3/5 · P1: 5/6 · P2: 7/9 · P3: 3/6 · P4: 3/7 · P5: 0/5
+- 완료: **24/38** (63%)
+- P0: 3/5 · P1: 6/6 · P2: 7/9 · P3: 6/6 · P4: 3/7 · P5: 0/5
 
-## 남은 P0 (UI 작업)
+## 남은 항목
 
-- **#3** Settings → Environments → github-pages → "Selected branches" 풀고 main 전용으로 되돌리기
-- **#5** main 머지 후 첫 PR이 자동으로 Lighthouse CI 트리거함
+| #     | 항목                                          | 비고             |
+| ----- | --------------------------------------------- | ---------------- |
+| 3     | github-pages 환경 보호 규칙 복구              | UI 작업 (사용자) |
+| 5     | Lighthouse CI 첫 실행 + 베이스라인            | 첫 PR 시 자동    |
+| 12    | 실제 시장 데이터 연동                         | 외부 API 필요    |
+| 13    | WebSocket 실시간 시세                         | 백엔드 필요      |
+| 27    | Vite 빌드 도입                                | 빌드 인프라      |
+| 28    | TypeScript 점진 도입                          | 큰 리팩터        |
+| 29    | Storybook                                     | 큰 리팩터        |
+| 31    | 브랜치 보호 규칙                              | UI 작업          |
+| 34-38 | 백엔드 도입 (계정·거래 엔진·자산군·멀티 계좌) | 인프라           |
 
 ## 다음 우선순위 후보
 
-1. **#11** Sentry 또는 GlitchTip 에러 모니터링
-2. **#27** Vite 번들 최적화
-3. **#28** TypeScript 점진 도입
-4. **#23** i18n (EN, JA)
-5. **#22** 모바일 제스처 (pull-to-refresh, swipe nav)
-6. **#26** 가상 거래 시뮬레이션 + 백테스트
-7. **#34-#38** 백엔드 도입 (사용자 계정 영속화부터)
+1. **#27 Vite + #28 TypeScript** — 빌드 도입 (코드 품질 다음 라운드)
+2. **#12 + #13** 실시장/WebSocket — 백엔드와 함께 검토
+3. **#34-#38** 백엔드 — 사용자 계정 영속화부터

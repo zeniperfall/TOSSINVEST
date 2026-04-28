@@ -17,6 +17,7 @@ const browserGlobals = {
   PerformanceObserver: 'readonly',
   performance: 'readonly',
   Notification: 'readonly',
+  Event: 'readonly',
 };
 
 const swGlobals = {

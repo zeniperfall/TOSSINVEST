@@ -30,10 +30,18 @@
           <span class="logo__mark">toss</span><span class="logo__sub">증권</span>
         </a>
         <nav class="gnb">
-          <a class="gnb__item" data-page="home" href="./home.html">홈</a>
-          <a class="gnb__item" data-page="stock" href="./index.html">주식</a>
-          <a class="gnb__item" data-page="search" href="./search.html">검색</a>
-          <a class="gnb__item" data-page="portfolio" href="./portfolio.html">내 자산</a>
+          <a class="gnb__item" data-page="home" href="./home.html" data-i18n="nav.home">홈</a>
+          <a class="gnb__item" data-page="stock" href="./index.html" data-i18n="nav.stock">주식</a>
+          <a class="gnb__item" data-page="search" href="./search.html" data-i18n="nav.search"
+            >검색</a
+          >
+          <a
+            class="gnb__item"
+            data-page="portfolio"
+            href="./portfolio.html"
+            data-i18n="nav.portfolio"
+            >내 자산</a
+          >
           <a class="gnb__item gnb__item--active" data-page="history" href="./history.html"
             >주문 내역</a
           >
@@ -49,12 +57,18 @@
                 stroke-linecap="round"
               />
             </svg>
-            <input id="globalSearch" type="search" placeholder="종목명·티커 검색" />
+            <input
+              id="globalSearch"
+              type="search"
+              placeholder="종목명·티커 검색"
+              data-i18n-placeholder="topbar.searchPlaceholder"
+            />
           </label>
+          <button class="btn btn--ghost btn--xs" data-locale-toggle aria-label="Locale">KO</button>
           <button class="iconbtn" data-theme-toggle aria-label="테마 전환" aria-pressed="false">
             <span data-theme-icon>🌙</span>
           </button>
-          <button class="btn btn--ghost">로그인</button>
+          <button class="btn btn--ghost" data-i18n="topbar.login">로그인</button>
         </div>
       </div>
     </header>
