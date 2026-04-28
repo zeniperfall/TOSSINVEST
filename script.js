@@ -15,6 +15,14 @@ import { wireThemeToggle, highlightNav } from './assets/theme.js';
 import { subscribeTicker } from './assets/live.js';
 import { wireAutocomplete } from './assets/autocomplete.js';
 import { isWatched, toggleWatched } from './assets/watchlist.js';
+import {
+  getAlerts,
+  addAlert,
+  removeAlert,
+  ensurePermission,
+  notify,
+  crossed,
+} from './assets/notification.js';
 
 wireThemeToggle();
 highlightNav('stock');
@@ -607,6 +615,8 @@ const holdingPnlEl = document.getElementById('holdingPnl');
 // Allow tests to crank up tick rate via ?live=fast.
 const liveFast = new URLSearchParams(window.location.search).get('live') === 'fast';
 
+let lastPrice = stock.price;
+
 subscribeTicker(
   stock,
   ({ price }) => {
@@ -635,6 +645,69 @@ subscribeTicker(
         fmtPrice(Math.abs(pnl), stock.currency) +
         `  (${pnl >= 0 ? '+' : '-'}${Math.abs(pnlPct).toFixed(2)}%)`;
     }
+
+    // Price alerts.
+    const remaining = [];
+    for (const a of getAlerts().filter(a => a.code === stock.code)) {
+      if (crossed(lastPrice, price, a.target, a.direction)) {
+        notify(
+          `${stock.nameKo} ${a.direction === 'above' ? '이상' : '이하'} 도달`,
+          `현재가 ${fmtPrice(price, stock.currency)} · 목표 ${fmtPrice(a.target, stock.currency)}`
+        );
+      } else {
+        remaining.push(a);
+      }
+    }
+    // Remove triggered alerts.
+    const all = getAlerts();
+    if (remaining.length !== all.filter(a => a.code === stock.code).length) {
+      const others = all.filter(a => a.code !== stock.code);
+      localStorage.setItem('tossinvest:alerts', JSON.stringify([...others, ...remaining]));
+      renderAlerts();
+    }
+    lastPrice = price;
   },
   { interval: liveFast ? 150 : 1500 }
 );
+
+// Alert UI wiring.
+const alertList = document.getElementById('alertList');
+const alertTargetInput = document.getElementById('alertTarget');
+const alertDirSelect = document.getElementById('alertDirection');
+const alertAddBtn = document.getElementById('alertAddBtn');
+
+function renderAlerts() {
+  const own = getAlerts().filter(a => a.code === stock.code);
+  if (own.length === 0) {
+    alertList.innerHTML = '';
+    return;
+  }
+  alertList.innerHTML = own
+    .map(
+      a => `
+        <li class="alert-item">
+          <span>${a.direction === 'above' ? '↗' : '↘'} ${fmtPrice(a.target, stock.currency)}</span>
+          <button class="link-btn" data-target="${a.target}">삭제</button>
+        </li>`
+    )
+    .join('');
+}
+
+alertAddBtn?.addEventListener('click', async () => {
+  const target = parseFloat(alertTargetInput.value.replace(/,/g, ''));
+  if (!isFinite(target) || target <= 0) return;
+  const direction = alertDirSelect.value;
+  await ensurePermission();
+  addAlert({ code: stock.code, target, direction });
+  alertTargetInput.value = '';
+  renderAlerts();
+});
+
+alertList?.addEventListener('click', e => {
+  const btn = e.target.closest('button[data-target]');
+  if (!btn) return;
+  removeAlert(stock.code, parseFloat(btn.dataset.target));
+  renderAlerts();
+});
+
+renderAlerts();

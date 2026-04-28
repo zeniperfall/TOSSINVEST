@@ -16,6 +16,15 @@ const browserGlobals = {
   getComputedStyle: 'readonly',
   PerformanceObserver: 'readonly',
   performance: 'readonly',
+  Notification: 'readonly',
+};
+
+const swGlobals = {
+  self: 'readonly',
+  caches: 'readonly',
+  fetch: 'readonly',
+  URL: 'readonly',
+  Promise: 'readonly',
 };
 
 const nodeGlobals = {
@@ -42,6 +51,17 @@ export default [
       'no-var': 'error',
       'prefer-const': 'warn',
       eqeqeq: ['error', 'smart'],
+    },
+  },
+  {
+    files: ['service-worker.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'script',
+      globals: swGlobals,
+    },
+    rules: {
+      'no-undef': 'error',
     },
   },
   {

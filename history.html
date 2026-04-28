@@ -10,7 +10,7 @@
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; script-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' ; script-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'"
     />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="토스증권 스타일 데모" />
@@ -20,12 +20,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:description" content="주문 체결·미체결·취소 내역 조회 데모" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <link
-      rel="stylesheet"
-      as="style"
-      crossorigin
-      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
-    />
+    <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -105,6 +100,7 @@
     </footer>
 
     <script type="module" src="./assets/history.js"></script>
+    <script type="module" src="./assets/pwa.js"></script>
     <script type="module" src="./assets/web-vitals.js"></script>
   </body>
 </html>

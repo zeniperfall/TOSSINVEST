@@ -127,3 +127,22 @@ test('MARKET trending and movers reference valid codes', () => {
   for (const c of MARKET.movers.gainers) assert.ok(STOCKS[c], `gainer ${c}`);
   for (const c of MARKET.movers.losers) assert.ok(STOCKS[c], `loser ${c}`);
 });
+
+test('crossed: detects upward target crossing only on transition', async () => {
+  const { crossed } = await import('../assets/notification.js');
+  // Crossing upward: prev below target, current at/above.
+  assert.equal(crossed(100, 105, 102, 'above'), true);
+  assert.equal(crossed(100, 102, 102, 'above'), true);
+  // Already above: no cross.
+  assert.equal(crossed(105, 110, 102, 'above'), false);
+  // Going up but not reaching target.
+  assert.equal(crossed(99, 100, 102, 'above'), false);
+});
+
+test('crossed: detects downward target crossing only on transition', async () => {
+  const { crossed } = await import('../assets/notification.js');
+  assert.equal(crossed(100, 95, 98, 'below'), true);
+  assert.equal(crossed(100, 98, 98, 'below'), true);
+  assert.equal(crossed(95, 90, 98, 'below'), false);
+  assert.equal(crossed(101, 100, 98, 'below'), false);
+});

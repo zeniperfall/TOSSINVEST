@@ -88,7 +88,10 @@ else ok('sell tab swaps button label');
 
 // ========================== DARK MODE ==========================
 console.log('--- 2. Dark mode toggle ---');
-await page.click('[data-theme-toggle]');
+// 3-way cycle: auto(default) → light → dark → auto. Set explicit dark for determinism.
+await page.evaluate(() => localStorage.setItem('tossinvest:theme', 'dark'));
+await page.reload({ waitUntil: 'load' });
+await page.waitForSelector('.chart .line');
 const theme = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
 if (theme !== 'dark') fail('dark mode not applied');
 else ok('dark mode toggles');
@@ -112,7 +115,7 @@ const themeAfter = await page.evaluate(() =>
 if (themeAfter !== 'dark') fail('theme did not persist across pages');
 else ok('theme persists across navigation');
 // Reset theme for screenshots.
-await page.click('[data-theme-toggle]');
+await page.evaluate(() => localStorage.removeItem('tossinvest:theme'));
 
 // ========================== HOME ==========================
 console.log('--- 3. Home page ---');
@@ -236,14 +239,19 @@ else ok('global search Enter navigates to matching stock');
 console.log('--- 10. Accessibility checks ---');
 await page.goto(`${BASE}/index.html?focusedProductCode=NAS0221219002`, { waitUntil: 'load' });
 
-// theme toggle should reflect aria-pressed.
-const ariaInitial = await page.getAttribute('[data-theme-toggle]', 'aria-pressed');
-await page.click('[data-theme-toggle]');
+// theme toggle reflects aria-pressed when effective theme is dark.
+// 3-way cycle: auto → light → dark → auto. Click twice from auto/light to reach dark.
+await page.evaluate(() => localStorage.removeItem('tossinvest:theme'));
+await page.reload({ waitUntil: 'load' });
+await page.waitForSelector('.chart .line');
+await page.click('[data-theme-toggle]'); // auto → light
+await page.click('[data-theme-toggle]'); // light → dark
 await page.waitForTimeout(100);
-const ariaAfter = await page.getAttribute('[data-theme-toggle]', 'aria-pressed');
-if (ariaInitial === ariaAfter) fail('aria-pressed did not toggle: ' + ariaInitial);
-else ok('aria-pressed reflects theme state');
-await page.click('[data-theme-toggle]'); // reset
+const ariaDark = await page.getAttribute('[data-theme-toggle]', 'aria-pressed');
+if (ariaDark !== 'true') fail('aria-pressed should be true at dark state, got: ' + ariaDark);
+else ok('aria-pressed=true at dark state');
+await page.click('[data-theme-toggle]'); // dark → auto
+await page.evaluate(() => localStorage.removeItem('tossinvest:theme'));
 
 // Each page has a single <main> landmark and a heading.
 for (const path of ['/home.html', '/search.html', '/portfolio.html']) {
@@ -483,6 +491,183 @@ await page.click('[data-theme-toggle]');
 await page.goto(`${BASE}/index.html?focusedProductCode=NAS0221219002`);
 await page.waitForSelector('.chart .line');
 await page.screenshot({ path: '/tmp/page-detail-dark.png', fullPage: true });
+
+// ========================== 19. PWA / MANIFEST / SERVICE WORKER ==========================
+console.log('--- 19. PWA assets ---');
+await page.goto(`${BASE}/home.html`, { waitUntil: 'load' });
+const manifestHref = await page.getAttribute('link[rel="manifest"]', 'href');
+if (!manifestHref) fail('manifest link missing');
+else ok('manifest link present: ' + manifestHref);
+
+const manifestJson = await page.evaluate(async href => {
+  const r = await fetch(href);
+  return r.ok ? await r.json() : null;
+}, manifestHref);
+if (!manifestJson) fail('manifest fetch failed');
+else if (!manifestJson.name || !manifestJson.start_url) fail('manifest missing name/start_url');
+else ok(`manifest valid (name=${manifestJson.name}, scope=${manifestJson.scope})`);
+
+const swReachable = await page.evaluate(async () => {
+  const r = await fetch('./service-worker.js');
+  return { ok: r.ok, status: r.status };
+});
+if (!swReachable.ok) fail('service-worker.js not served');
+else ok('service-worker.js reachable');
+
+// Wait for SW to register (chromium needs https or localhost; localhost is OK).
+const swState = await page.evaluate(
+  () =>
+    new Promise(resolve => {
+      if (!('serviceWorker' in navigator)) return resolve('unsupported');
+      const start = Date.now();
+      const tick = () => {
+        if (navigator.serviceWorker.controller) return resolve('controlled');
+        if (Date.now() - start > 4000) return resolve('timeout');
+        setTimeout(tick, 100);
+      };
+      navigator.serviceWorker.ready.then(() => resolve('ready')).catch(() => resolve('error'));
+      tick();
+    })
+);
+if (swState === 'unsupported' || swState === 'error') fail('SW registration: ' + swState);
+else ok('service worker state: ' + swState);
+
+// ========================== 20. 3-WAY THEME (auto/light/dark) ==========================
+console.log('--- 20. 3-way theme cycle ---');
+await page.goto(`${BASE}/home.html`, { waitUntil: 'load' });
+await page.evaluate(() => localStorage.removeItem('tossinvest:theme'));
+await page.reload({ waitUntil: 'load' });
+
+const initialPref = await page.getAttribute('html', 'data-theme-pref');
+if (initialPref !== 'auto') fail('initial theme pref should be auto, got ' + initialPref);
+else ok('initial theme is auto');
+
+// Cycle: auto → light → dark → auto.
+await page.click('[data-theme-toggle]');
+const p1 = await page.getAttribute('html', 'data-theme-pref');
+await page.click('[data-theme-toggle]');
+const p2 = await page.getAttribute('html', 'data-theme-pref');
+await page.click('[data-theme-toggle]');
+const p3 = await page.getAttribute('html', 'data-theme-pref');
+if (p1 !== 'light' || p2 !== 'dark' || p3 !== 'auto')
+  fail(`theme cycle wrong: ${p1}/${p2}/${p3}`);
+else ok('3-way theme cycles auto→light→dark→auto');
+
+// ========================== 21. PRICE ALERTS ==========================
+console.log('--- 21. Price alerts (Notification API) ---');
+await page.goto(`${BASE}/index.html?focusedProductCode=NAS0221219002&live=fast`, {
+  waitUntil: 'load',
+});
+await page.waitForSelector('.chart .line');
+await page.evaluate(() => localStorage.removeItem('tossinvest:alerts'));
+
+await page.fill('#alertTarget', '1500');
+await page.click('#alertAddBtn');
+await page.waitForTimeout(60);
+const alerts = await page.evaluate(() =>
+  JSON.parse(localStorage.getItem('tossinvest:alerts') || '[]')
+);
+if (alerts.length !== 1 || alerts[0].target !== 1500) fail('alert not stored: ' + JSON.stringify(alerts));
+else ok('alert added to localStorage');
+
+const alertItems = (await page.$$('#alertList .alert-item')).length;
+if (alertItems !== 1) fail('alert list UI did not render');
+else ok('alert list renders item');
+
+// Remove via UI.
+await page.click('#alertList button[data-target]');
+const afterRemove = await page.evaluate(() =>
+  JSON.parse(localStorage.getItem('tossinvest:alerts') || '[]')
+);
+if (afterRemove.length !== 0) fail('alert removal failed');
+else ok('alert can be removed via UI');
+
+// ========================== 22. WCAG-LIKE COLOR CONTRAST ==========================
+console.log('--- 22. Color contrast (WCAG-ish) ---');
+
+async function contrastCheck(url) {
+  await page.goto(url, { waitUntil: 'load' });
+  if (url.includes('index.html')) await page.waitForSelector('.chart .line');
+  // Wait for the body color transition (0.18s) to settle.
+  await page.waitForTimeout(400);
+  return page.evaluate(() => {
+    function rgb(s) {
+      const m = s.match(/\d+/g);
+      if (!m) return [0, 0, 0];
+      return m.slice(0, 3).map(Number);
+    }
+    function lum([r, g, b]) {
+      const f = c => {
+        c = c / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      };
+      return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+    }
+    function ratio(a, b) {
+      const L1 = lum(a),
+        L2 = lum(b);
+      const [hi, lo] = L1 > L2 ? [L1, L2] : [L2, L1];
+      return (hi + 0.05) / (lo + 0.05);
+    }
+    const failures = [];
+    const selectors = [
+      '.gnb__item',
+      '.btn--primary',
+      '.btn--ghost',
+      '.tab',
+      '.range__btn',
+      '.card__title',
+      'h1',
+      'h2',
+      '.muted',
+      '.live-badge',
+    ];
+    for (const sel of selectors) {
+      const el = document.querySelector(sel);
+      if (!el) continue;
+      const cs = getComputedStyle(el);
+      const fontSize = parseFloat(cs.fontSize);
+      const fontWeight = parseInt(cs.fontWeight, 10);
+      const isLargeText = fontSize >= 18 || (fontSize >= 14 && fontWeight >= 700);
+      const minRatio = isLargeText ? 3 : 4.5;
+      // Walk up to find a non-transparent background.
+      let bgEl = el;
+      let bg = rgb(getComputedStyle(bgEl).backgroundColor);
+      let alpha = parseFloat(getComputedStyle(bgEl).backgroundColor.match(/\(([^)]+)\)/)?.[1].split(',')[3] ?? '1');
+      while ((alpha === 0 || isNaN(alpha)) && bgEl.parentElement) {
+        bgEl = bgEl.parentElement;
+        const bgcs = getComputedStyle(bgEl).backgroundColor;
+        bg = rgb(bgcs);
+        alpha = parseFloat(bgcs.match(/\(([^)]+)\)/)?.[1].split(',')[3] ?? '1');
+      }
+      const fg = rgb(cs.color);
+      const r = ratio(fg, bg);
+      if (r < minRatio) {
+        failures.push({ sel, ratio: r.toFixed(2), need: minRatio, fg: cs.color, bg: getComputedStyle(bgEl).backgroundColor });
+      }
+    }
+    return failures;
+  });
+}
+
+const lightFailures = await contrastCheck(`${BASE}/home.html`);
+if (lightFailures.length > 0)
+  fail(
+    `light mode contrast failures (${lightFailures.length}): ` +
+      JSON.stringify(lightFailures.slice(0, 3))
+  );
+else ok('light mode passes WCAG AA contrast on key selectors');
+
+// Force dark for next check.
+await page.evaluate(() => localStorage.setItem('tossinvest:theme', 'dark'));
+const darkFailures = await contrastCheck(`${BASE}/home.html`);
+if (darkFailures.length > 0)
+  fail(
+    `dark mode contrast failures (${darkFailures.length}): ` +
+      JSON.stringify(darkFailures.slice(0, 3))
+  );
+else ok('dark mode passes WCAG AA contrast on key selectors');
+await page.evaluate(() => localStorage.removeItem('tossinvest:theme'));
 
 await browser.close();
 

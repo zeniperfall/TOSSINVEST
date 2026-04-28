@@ -1,9 +1,9 @@
 # ROADMAP — 작업 진행 상황
 
-마지막 업데이트: 2026-04-28 · 작업 단위 표기 — **S**(시간) · **M**(일) · **L**(주)
+마지막 업데이트: 2026-04-28 (R3) · 작업 단위 표기 — **S**(시간) · **M**(일) · **L**(주)
 
-현재 상태: 6개 페이지 정적 사이트, **65/65** 검증 통과 (53 E2E + 12 unit), GitHub Pages
-배포 완료 (`https://zeniperfall.github.io/TOSSINVEST/`).
+현재 상태: 6개 페이지 정적 사이트, PWA 설치 가능, **76/76** 검증 통과 (62 E2E + 14 unit),
+GitHub Pages 배포 완료 (`https://zeniperfall.github.io/TOSSINVEST/`).
 
 ✅ = 완료 · ⏳ = 진행 중 · ⬜ = 미진행
 
@@ -21,14 +21,14 @@
 
 ## 🟠 P1 — 신뢰성 / 보안 / SEO
 
-| 상태 | #   | 항목                                                                       | 단위 |
-| ---- | --- | -------------------------------------------------------------------------- | ---- |
-| ⬜   | 6   | Pretendard 자체 호스팅 (CDN 의존 제거)                                     | S    |
-| ✅   | 7   | 보안 헤더 — CSP, Referrer-Policy, X-Content-Type-Options (meta)            | S    |
-| ✅   | 8   | SEO — Open Graph / Twitter Card / `sitemap.xml` / `robots.txt` / canonical | S    |
-| ⬜   | 9   | 색상 대비 자동 검사 (axe-core)                                             | M    |
-| ✅   | 10  | 단위 테스트 (node:test) — fmtPrice, buildSeries, OHLC, MA, OrderBook       | M    |
-| ⬜   | 11  | 에러 모니터링 (Sentry)                                                     | M    |
+| 상태 | #   | 항목                                                                          | 단위 |
+| ---- | --- | ----------------------------------------------------------------------------- | ---- |
+| ✅   | 6   | CDN 의존 제거 — jsdelivr Pretendard 링크 삭제, 시스템 폰트 폴백               | S    |
+| ✅   | 7   | 보안 헤더 — CSP, Referrer-Policy, X-Content-Type-Options (meta)               | S    |
+| ✅   | 8   | SEO — Open Graph / Twitter Card / `sitemap.xml` / `robots.txt` / canonical    | S    |
+| ✅   | 9   | 색상 대비 자동 검사 — Playwright + WCAG AA 룰 (light/dark 양방향)             | M    |
+| ✅   | 10  | 단위 테스트 (node:test) — fmtPrice, buildSeries, OHLC, MA, OrderBook, crossed | M    |
+| ⬜   | 11  | 에러 모니터링 (Sentry)                                                        | M    |
 
 ## 🟡 P2 — 데이터 / 핵심 기능 확장
 
@@ -46,14 +46,14 @@
 
 ## 🟢 P3 — UX / 디자인 폴리싱
 
-| 상태 | #   | 항목                                | 단위 |
-| ---- | --- | ----------------------------------- | ---- |
-| ⬜   | 21  | PWA 지원 — manifest, Service Worker | M    |
-| ⬜   | 22  | 모바일 제스처 — pull-to-refresh     | M    |
-| ⬜   | 23  | 다국어 (i18n) — EN, JA              | M    |
-| ⬜   | 24  | 시스템 자동 / 고대비 모드           | S    |
-| ⬜   | 25  | 알림센터 — 목표가 도달 푸시         | M    |
-| ⬜   | 26  | 가상 거래 시뮬레이션 + 백테스트     | L    |
+| 상태 | #   | 항목                                                        | 단위 |
+| ---- | --- | ----------------------------------------------------------- | ---- |
+| ✅   | 21  | PWA — manifest.webmanifest + Service Worker + 설치 프롬프트 | M    |
+| ⬜   | 22  | 모바일 제스처 — pull-to-refresh                             | M    |
+| ⬜   | 23  | 다국어 (i18n) — EN, JA                                      | M    |
+| ✅   | 24  | 시스템 자동 / 라이트 / 다크 — 3-way 토글                    | S    |
+| ✅   | 25  | 목표가 알림 — Notification API + 라이브 틱 트리거           | M    |
+| ⬜   | 26  | 가상 거래 시뮬레이션 + 백테스트                             | L    |
 
 ## 🔵 P4 — 엔지니어링 인프라 / 코드 품질
 
@@ -79,10 +79,10 @@
 
 ---
 
-## 진행 통계 (2026-04-28)
+## 진행 통계 (2026-04-28 R3)
 
-- 완료: **15/38** (39%)
-- P0: 3/5 · P1: 3/6 · P2: 7/9 · P3: 0/6 · P4: 3/7 · P5: 0/5
+- 완료: **20/38** (53%)
+- P0: 3/5 · P1: 5/6 · P2: 7/9 · P3: 3/6 · P4: 3/7 · P5: 0/5
 
 ## 남은 P0 (UI 작업)
 
@@ -91,7 +91,10 @@
 
 ## 다음 우선순위 후보
 
-1. **#6** Pretendard 자체 호스팅 — CDN 차단 환경 대응
-2. **#21** PWA — 오프라인 대응
-3. **#9** axe-core 접근성 자동 검사
-4. **#27** Vite — 번들 최적화
+1. **#11** Sentry 또는 GlitchTip 에러 모니터링
+2. **#27** Vite 번들 최적화
+3. **#28** TypeScript 점진 도입
+4. **#23** i18n (EN, JA)
+5. **#22** 모바일 제스처 (pull-to-refresh, swipe nav)
+6. **#26** 가상 거래 시뮬레이션 + 백테스트
+7. **#34-#38** 백엔드 도입 (사용자 계정 영속화부터)

@@ -10,18 +10,13 @@
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; script-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' ; script-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'"
     />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="토스증권 스타일 데모" />
     <meta name="twitter:card" content="summary" />
     <link rel="canonical" href="https://zeniperfall.github.io/TOSSINVEST/index.html" />
-    <link
-      rel="stylesheet"
-      as="style"
-      crossorigin
-      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
-    />
+    <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -359,6 +354,26 @@
                 시세는 약 15분 지연될 수 있어요. 본 화면은 디자인 예시입니다.
               </p>
             </div>
+
+            <div class="card alert-card">
+              <h3 class="card__title">목표가 알림</h3>
+              <p class="muted">설정한 가격에 도달하면 브라우저 알림으로 알려드려요.</p>
+              <div class="alert-row">
+                <select id="alertDirection" class="select" style="width: 90px">
+                  <option value="above">이상</option>
+                  <option value="below">이하</option>
+                </select>
+                <input
+                  class="input"
+                  id="alertTarget"
+                  type="text"
+                  inputmode="decimal"
+                  placeholder="예) 1000"
+                />
+                <button class="btn btn--ghost" id="alertAddBtn">설정</button>
+              </div>
+              <ul class="alert-list" id="alertList"></ul>
+            </div>
           </aside>
         </div>
       </div>
@@ -371,6 +386,7 @@
     </footer>
 
     <script type="module" src="./script.js"></script>
+    <script type="module" src="./assets/pwa.js"></script>
     <script type="module" src="./assets/web-vitals.js"></script>
   </body>
 </html>
