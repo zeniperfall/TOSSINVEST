@@ -1,8 +1,11 @@
 import { STOCKS, MARKET, fmtPrice } from './data.js';
 import { wireThemeToggle, highlightNav } from './theme.js';
+import { wireAutocomplete } from './autocomplete.js';
+import { getWatchlist, subscribe as subscribeWatchlist } from './watchlist.js';
 
 wireThemeToggle();
 highlightNav('home');
+wireAutocomplete();
 
 // Indices.
 document.getElementById('indices').innerHTML = MARKET.indices
@@ -43,6 +46,25 @@ function rankRow(code, idx) {
       </a>
     </li>`;
 }
+
+function renderWatchlist() {
+  const codes = getWatchlist();
+  const section = document.getElementById('watchlistSection');
+  const countEl = document.getElementById('watchlistCount');
+  const ul = document.getElementById('watchlist');
+  if (codes.length === 0) {
+    section.hidden = true;
+    return;
+  }
+  section.hidden = false;
+  countEl.textContent = `· ${codes.length}개`;
+  ul.innerHTML = codes
+    .filter(c => STOCKS[c])
+    .map((c, i) => rankRow(c, i))
+    .join('');
+}
+renderWatchlist();
+subscribeWatchlist(renderWatchlist);
 
 document.getElementById('trending').innerHTML = MARKET.trending
   .map((c, i) => rankRow(c, i))

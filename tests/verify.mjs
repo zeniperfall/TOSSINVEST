@@ -296,6 +296,171 @@ if (!/주문 접수됨/.test(journeyPlaceText))
   fail('order placement feedback missing: ' + journeyPlaceText);
 else ok('end-to-end buy journey shows order acceptance');
 
+// ========================== 13. CANDLESTICK + MA + VOLUME ==========================
+console.log('--- 13. Chart enhancements (candlestick, MA, volume) ---');
+await page.goto(`${BASE}/index.html?focusedProductCode=NAS0221219002`, { waitUntil: 'load' });
+await page.waitForSelector('.chart .line');
+
+// Volume chart renders bars by default.
+const volBars = await page.$$('#volumeChart .vol-bar');
+if (volBars.length < 5) fail('volume bars missing: ' + volBars.length);
+else ok(`volume bars rendered: ${volBars.length}`);
+
+// Switch to candle mode.
+await page.click('.mode-btn[data-mode="candle"]');
+await page.waitForTimeout(120);
+const candleBodies = await page.$$('.chart .candle-body');
+const lineGone = (await page.$$('.chart .line')).length === 0;
+if (candleBodies.length === 0) fail('candle bodies not rendered after toggle');
+else if (!lineGone) fail('line should be hidden in candle mode');
+else ok(`candle mode renders ${candleBodies.length} candles`);
+
+// Switch back to line mode.
+await page.click('.mode-btn[data-mode="line"]');
+await page.waitForTimeout(120);
+const lineBack = (await page.$('.chart .line')) !== null;
+if (!lineBack) fail('line did not return when switching back to line mode');
+else ok('line mode toggle is reversible');
+
+// MA toggle.
+await page.check('#maToggle');
+await page.waitForTimeout(120);
+const maPresent = (await page.$('.chart .ma-line')) !== null;
+if (!maPresent) fail('MA line not rendered after toggle');
+else ok('MA(20) overlay renders');
+
+// ========================== 14. WATCHLIST PERSISTENCE ==========================
+console.log('--- 14. Watchlist star + home section ---');
+await page.goto(`${BASE}/index.html?focusedProductCode=NASTSLA`, { waitUntil: 'load' });
+await page.waitForSelector('.chart .line');
+
+// Reset localStorage so we know the initial state.
+await page.evaluate(() => localStorage.removeItem('tossinvest:watchlist'));
+await page.reload({ waitUntil: 'load' });
+await page.waitForSelector('.chart .line');
+
+const starInitiallyOn = await page.evaluate(() =>
+  document.querySelector('.iconbtn--star').classList.contains('is-on')
+);
+// TSLA is in DEFAULTS, so should be on after reset+reload.
+if (!starInitiallyOn) fail('TSLA should be in default watchlist');
+else ok('default watchlist seeds TSLA');
+
+// Toggle off.
+await page.click('.iconbtn--star');
+const afterOff = await page.evaluate(() =>
+  JSON.parse(localStorage.getItem('tossinvest:watchlist'))
+);
+if (afterOff.includes('NASTSLA')) fail('TSLA should be removed from watchlist after click');
+else ok('star click removes from watchlist');
+
+// Toggle back on.
+await page.click('.iconbtn--star');
+const afterOn = await page.evaluate(() =>
+  JSON.parse(localStorage.getItem('tossinvest:watchlist'))
+);
+if (!afterOn.includes('NASTSLA')) fail('TSLA should be re-added');
+else ok('star click re-adds to watchlist');
+
+// Home page shows watchlist section.
+await page.goto(`${BASE}/home.html`, { waitUntil: 'load' });
+const watchlistVisible = await page.isVisible('#watchlistSection');
+const watchlistCount = (await page.$$('#watchlist .rank__item')).length;
+if (!watchlistVisible || watchlistCount < 1)
+  fail('watchlist section not populated on home');
+else ok(`home shows watchlist section with ${watchlistCount} items`);
+
+// ========================== 15. SEARCH AUTOCOMPLETE ==========================
+console.log('--- 15. Topbar autocomplete ---');
+await page.goto(`${BASE}/home.html`, { waitUntil: 'load' });
+await page.fill('#globalSearch', '엔비');
+await page.dispatchEvent('#globalSearch', 'input');
+await page.waitForTimeout(60);
+const acItems = await page.$$('.autocomplete__item');
+if (acItems.length === 0) fail('autocomplete dropdown empty for "엔비"');
+else ok(`autocomplete shows ${acItems.length} matches for "엔비"`);
+
+// Press Down then Enter to navigate.
+await page.press('#globalSearch', 'Enter');
+await page.waitForLoadState('load');
+const afterAcUrl = page.url();
+if (!/focusedProductCode=NAS0221219002/.test(afterAcUrl))
+  fail('autocomplete did not navigate to NVDA: ' + afterAcUrl);
+else ok('autocomplete Enter navigates to top match');
+
+// ========================== 16. ORDER HISTORY PAGE ==========================
+console.log('--- 16. Order history page ---');
+await page.goto(`${BASE}/history.html`, { waitUntil: 'load' });
+const historyRows = (await page.$$('#historyBody tr')).length;
+if (historyRows < 3) fail('history has too few rows: ' + historyRows);
+else ok(`history shows ${historyRows} orders`);
+
+// Filter to 미체결.
+await page.click('.chip[data-filter="미체결"]');
+await page.waitForTimeout(60);
+const pendingRows = await page.$$eval('#historyBody tr', els => els.length);
+const pendingBadge = await page.$$eval('#historyBody .badge--pending', els => els.length);
+if (pendingRows < 1 || pendingBadge < 1)
+  fail(`pending filter didn't show pending orders (rows=${pendingRows}, badges=${pendingBadge})`);
+else ok('history filter chips work');
+
+// Click an order row link to detail.
+await page.click('.chip[data-filter="all"]');
+await page.click('#historyBody .holdings-name >> nth=0');
+await page.waitForLoadState('load');
+if (!/focusedProductCode=/.test(page.url()))
+  fail('history row link did not navigate with productCode');
+else ok('history row links to detail');
+
+// ========================== 17. SECURITY HEADERS / SEO META ==========================
+console.log('--- 17. Security/SEO meta ---');
+await page.goto(`${BASE}/home.html`, { waitUntil: 'load' });
+const metas = await page.evaluate(() => {
+  const get = name =>
+    document.querySelector(`meta[name="${name}"], meta[http-equiv="${name}"], meta[property="${name}"]`)
+      ?.getAttribute('content') || null;
+  return {
+    csp: get('Content-Security-Policy'),
+    xfo: get('X-Frame-Options'),
+    xcto: get('X-Content-Type-Options'),
+    referrer: get('referrer'),
+    ogType: get('og:type'),
+    canonical: document.querySelector('link[rel="canonical"]')?.getAttribute('href'),
+  };
+});
+// Note: X-Frame-Options and CSP frame-ancestors must be set via HTTP headers, not meta.
+if (!metas.csp) fail('CSP meta missing');
+else if (!metas.xcto) fail('X-Content-Type-Options meta missing');
+else if (!metas.ogType) fail('og:type missing');
+else if (!metas.canonical) fail('canonical link missing');
+else ok('security + SEO meta present on home');
+
+// Sitemap & robots accessible.
+const sm = await page.evaluate(async () => {
+  const r = await fetch('./sitemap.xml');
+  return { ok: r.ok, status: r.status };
+});
+if (!sm.ok) fail('sitemap.xml not served');
+else ok('sitemap.xml accessible');
+
+const rb = await page.evaluate(async () => {
+  const r = await fetch('./robots.txt');
+  return { ok: r.ok, status: r.status };
+});
+if (!rb.ok) fail('robots.txt not served');
+else ok('robots.txt accessible');
+
+// ========================== 18. WEB VITALS REPORTER ==========================
+console.log('--- 18. Web Vitals reporter ---');
+const vitalsLogs = [];
+page.on('console', msg => {
+  if (msg.text().includes('[web-vitals]')) vitalsLogs.push(msg.text());
+});
+await page.goto(`${BASE}/home.html`, { waitUntil: 'load' });
+await page.waitForTimeout(800);
+if (vitalsLogs.length === 0) fail('web-vitals reporter never logged');
+else ok(`web-vitals reporter active (${vitalsLogs.length} entries)`);
+
 // Screenshots for sanity.
 await page.goto(`${BASE}/index.html?focusedProductCode=NAS0221219002`, { waitUntil: 'load' });
 await page.waitForSelector('.chart .line');
@@ -309,6 +474,9 @@ await page.screenshot({ path: '/tmp/page-portfolio.png', fullPage: true });
 
 await page.goto(`${BASE}/search.html`);
 await page.screenshot({ path: '/tmp/page-search.png', fullPage: true });
+
+await page.goto(`${BASE}/history.html`);
+await page.screenshot({ path: '/tmp/page-history.png', fullPage: true });
 
 // Dark screenshot.
 await page.click('[data-theme-toggle]');

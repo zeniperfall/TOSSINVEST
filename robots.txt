@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://zeniperfall.github.io/TOSSINVEST/sitemap.xml

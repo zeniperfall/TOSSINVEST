@@ -14,6 +14,8 @@ const browserGlobals = {
   URLSearchParams: 'readonly',
   Intl: 'readonly',
   getComputedStyle: 'readonly',
+  PerformanceObserver: 'readonly',
+  performance: 'readonly',
 };
 
 const nodeGlobals = {

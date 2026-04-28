@@ -1,8 +1,10 @@
 import { STOCKS, fmtPrice } from './data.js';
 import { wireThemeToggle, highlightNav } from './theme.js';
+import { wireAutocomplete } from './autocomplete.js';
 
 wireThemeToggle();
 highlightNav('search');
+wireAutocomplete();
 
 const params = new URLSearchParams(window.location.search);
 const initialQuery = params.get('q') || '';

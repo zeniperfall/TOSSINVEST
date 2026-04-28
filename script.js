@@ -4,15 +4,21 @@ import {
   HOLDINGS,
   MARKET,
   buildSeries,
+  buildCandles,
+  buildVolume,
   buildOrderBook,
+  movingAverage,
   fmtPrice,
   fmtChange,
 } from './assets/data.js';
 import { wireThemeToggle, highlightNav } from './assets/theme.js';
 import { subscribeTicker } from './assets/live.js';
+import { wireAutocomplete } from './assets/autocomplete.js';
+import { isWatched, toggleWatched } from './assets/watchlist.js';
 
 wireThemeToggle();
 highlightNav('stock');
+wireAutocomplete();
 
 // ----- Resolve focused stock from URL -----
 const params = new URLSearchParams(window.location.search);
@@ -134,6 +140,8 @@ const VB = { w: 720, h: 280, padX: 12, padTop: 16, padBottom: 28 };
 let currentRange = '1W';
 let currentPoints = [];
 let showBenchmark = false;
+let chartMode = 'line'; // 'line' | 'candle'
+let showMA = false;
 
 function fmtTime(d, range) {
   const opts =
@@ -205,20 +213,77 @@ function renderChart(range) {
   const linePath = points
     .map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(2) + ' ' + p.y.toFixed(2))
     .join(' ');
-  const area = document.createElementNS(SVG_NS, 'path');
-  area.setAttribute('class', 'area');
-  area.setAttribute(
-    'd',
-    linePath +
-      ` L ${(VB.w - VB.padX).toFixed(2)} ${(VB.padTop + usableH).toFixed(2)}` +
-      ` L ${VB.padX.toFixed(2)} ${(VB.padTop + usableH).toFixed(2)} Z`
-  );
-  svg.appendChild(area);
 
-  const line = document.createElementNS(SVG_NS, 'path');
-  line.setAttribute('class', 'line');
-  line.setAttribute('d', linePath);
-  svg.appendChild(line);
+  if (chartMode === 'line') {
+    const area = document.createElementNS(SVG_NS, 'path');
+    area.setAttribute('class', 'area');
+    area.setAttribute(
+      'd',
+      linePath +
+        ` L ${(VB.w - VB.padX).toFixed(2)} ${(VB.padTop + usableH).toFixed(2)}` +
+        ` L ${VB.padX.toFixed(2)} ${(VB.padTop + usableH).toFixed(2)} Z`
+    );
+    svg.appendChild(area);
+
+    const line = document.createElementNS(SVG_NS, 'path');
+    line.setAttribute('class', 'line');
+    line.setAttribute('d', linePath);
+    svg.appendChild(line);
+  } else {
+    // Candle mode
+    const candles = buildCandles(stock, range);
+    const candleW = Math.max(2, (usableW / candles.length) * 0.7);
+    candles.forEach((c, i) => {
+      const x = VB.padX + ((i + 0.5) / candles.length) * usableW;
+      const yScale = v => VB.padTop + (1 - (v - yMin) / (yMax - yMin)) * usableH;
+      const yOpen = yScale(c.open);
+      const yClose = yScale(c.close);
+      const yHigh = yScale(c.high);
+      const yLow = yScale(c.low);
+      const up = c.close >= c.open;
+
+      const wick = document.createElementNS(SVG_NS, 'line');
+      wick.setAttribute('class', up ? 'candle-wick up' : 'candle-wick down');
+      wick.setAttribute('x1', x);
+      wick.setAttribute('x2', x);
+      wick.setAttribute('y1', yHigh);
+      wick.setAttribute('y2', yLow);
+      svg.appendChild(wick);
+
+      const body = document.createElementNS(SVG_NS, 'rect');
+      body.setAttribute('class', up ? 'candle-body up' : 'candle-body down');
+      body.setAttribute('x', x - candleW / 2);
+      body.setAttribute('y', Math.min(yOpen, yClose));
+      body.setAttribute('width', candleW);
+      body.setAttribute('height', Math.max(1, Math.abs(yClose - yOpen)));
+      svg.appendChild(body);
+    });
+  }
+
+  if (showMA) {
+    const maValues = movingAverage(data, 20);
+    const segments = [];
+    let curSeg = '';
+    points.forEach((p, i) => {
+      const v = maValues[i];
+      if (v === null) {
+        if (curSeg) {
+          segments.push(curSeg);
+          curSeg = '';
+        }
+        return;
+      }
+      const y = VB.padTop + (1 - (v - yMin) / (yMax - yMin)) * usableH;
+      curSeg += (curSeg ? ' L' : 'M') + p.x.toFixed(2) + ' ' + y.toFixed(2);
+    });
+    if (curSeg) segments.push(curSeg);
+    segments.forEach(seg => {
+      const ma = document.createElementNS(SVG_NS, 'path');
+      ma.setAttribute('class', 'ma-line');
+      ma.setAttribute('d', seg);
+      svg.appendChild(ma);
+    });
+  }
 
   if (showBenchmark) {
     const bench = MARKET.benchmark.series.slice(-points.length);
@@ -318,7 +383,54 @@ document.getElementById('benchmarkToggle').addEventListener('change', e => {
   renderChart(currentRange);
 });
 
-renderChart(currentRange);
+document.getElementById('maToggle').addEventListener('change', e => {
+  showMA = e.target.checked;
+  renderChart(currentRange);
+});
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('mode-btn--active'));
+    btn.classList.add('mode-btn--active');
+    chartMode = btn.dataset.mode;
+    renderChart(currentRange);
+  });
+});
+
+// ----- Volume bar chart -----
+const volSvg = document.getElementById('volumeChart');
+const VOL_VB = { w: 720, h: 60, padX: 12, padTop: 4, padBottom: 4 };
+function renderVolume(range) {
+  while (volSvg.firstChild) volSvg.removeChild(volSvg.firstChild);
+  const bars = buildVolume(stock, range);
+  const max = Math.max(...bars.map(b => b.volume));
+  const usableW = VOL_VB.w - VOL_VB.padX * 2;
+  const usableH = VOL_VB.h - VOL_VB.padTop - VOL_VB.padBottom;
+  const barW = Math.max(2, (usableW / bars.length) * 0.7);
+  bars.forEach((b, i) => {
+    const x = VOL_VB.padX + ((i + 0.5) / bars.length) * usableW - barW / 2;
+    const h = (b.volume / max) * usableH;
+    const rect = document.createElementNS(SVG_NS, 'rect');
+    rect.setAttribute('class', b.up ? 'vol-bar up' : 'vol-bar down');
+    rect.setAttribute('x', x);
+    rect.setAttribute('y', VOL_VB.padTop + (usableH - h));
+    rect.setAttribute('width', barW);
+    rect.setAttribute('height', h);
+    volSvg.appendChild(rect);
+  });
+}
+
+function renderAll(range) {
+  renderChart(range);
+  renderVolume(range);
+}
+
+// Override range button + toggle handlers to also re-render volume.
+document.querySelectorAll('.range__btn').forEach(btn => {
+  btn.addEventListener('click', () => renderVolume(btn.dataset.range));
+});
+
+renderAll(currentRange);
 
 // ----- Order book -----
 function renderOrderBook() {
@@ -469,28 +581,19 @@ placeBtn.addEventListener('click', () => {
 });
 
 const star = document.querySelector('.iconbtn--star');
+function reflectStar(on) {
+  star.classList.toggle('is-on', on);
+  const path = star.querySelector('path');
+  if (path) path.setAttribute('fill', on ? 'currentColor' : 'none');
+  star.setAttribute('aria-pressed', String(on));
+}
 if (star) {
+  reflectStar(isWatched(stock.code));
   star.addEventListener('click', () => {
-    star.classList.toggle('is-on');
-    const path = star.querySelector('path');
-    if (path) path.setAttribute('fill', star.classList.contains('is-on') ? 'currentColor' : 'none');
+    const on = toggleWatched(stock.code);
+    reflectStar(on);
   });
 }
-
-// ----- Global search (jumps to detail by ticker) -----
-document.getElementById('globalSearch').addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return;
-  const q = e.target.value.trim().toUpperCase();
-  if (!q) return;
-  const found = Object.values(STOCKS).find(
-    s => s.ticker === q || s.nameKo.includes(e.target.value.trim())
-  );
-  if (found) {
-    window.location.href = `./index.html?focusedProductCode=${found.code}`;
-  } else {
-    window.location.href = `./search.html?q=${encodeURIComponent(e.target.value.trim())}`;
-  }
-});
 
 updateTotal();
 

@@ -9,7 +9,9 @@
     "lint": "eslint \"**/*.js\" --ignore-pattern node_modules",
     "format": "prettier --write \"**/*.{js,css,html,json,md}\" --ignore-path .gitignore",
     "format:check": "prettier --check \"**/*.{js,css,html,json,md}\" --ignore-path .gitignore",
-    "verify": "node tests/verify.mjs"
+    "test:unit": "node --test tests/unit.mjs",
+    "verify": "node tests/verify.mjs",
+    "verify:all": "npm run test:unit && npm run verify"
   },
   "devDependencies": {
     "eslint": "^10.0.0",

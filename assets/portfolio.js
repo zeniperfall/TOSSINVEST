@@ -1,8 +1,10 @@
 import { STOCKS, HOLDINGS, fmtPrice } from './data.js';
 import { wireThemeToggle, highlightNav } from './theme.js';
+import { wireAutocomplete } from './autocomplete.js';
 
 wireThemeToggle();
 highlightNav('portfolio');
+wireAutocomplete();
 
 // Pre-compute USD-equivalent values for the pie + summary.
 // (Convert KRW holdings at a fixed sample rate to keep the demo self-contained.)

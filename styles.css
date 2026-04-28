@@ -540,6 +540,157 @@ select {
   stroke-dasharray: 2 4;
   stroke-width: 1;
 }
+.chart .candle-wick {
+  stroke-width: 1;
+}
+.chart .candle-wick.up {
+  stroke: var(--up);
+}
+.chart .candle-wick.down {
+  stroke: var(--down);
+}
+.chart .candle-body.up {
+  fill: var(--up);
+}
+.chart .candle-body.down {
+  fill: var(--down);
+}
+.chart .ma-line {
+  fill: none;
+  stroke: #ffb020;
+  stroke-width: 1.5;
+}
+.chart--volume {
+  display: block;
+  width: 100%;
+  height: 60px;
+  margin-top: 6px;
+  background: var(--surface);
+  border-radius: 8px;
+}
+.vol-bar.up {
+  fill: color-mix(in oklab, var(--up) 70%, transparent);
+}
+.vol-bar.down {
+  fill: color-mix(in oklab, var(--down) 70%, transparent);
+}
+
+/* Chart mode toggle pill group */
+.chart-modes {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.mode-btn {
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.mode-btn--active {
+  background: var(--text);
+  color: var(--surface);
+}
+
+/* Filter chips (history page) */
+.filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.chip {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.chip:hover {
+  border-color: var(--toss-blue);
+  color: var(--toss-blue);
+}
+.chip--active {
+  background: var(--text);
+  color: var(--surface);
+  border-color: var(--text);
+}
+
+/* Status badges */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.badge--filled {
+  background: var(--down-soft);
+  color: var(--down);
+}
+.badge--pending {
+  background: #fff7e0;
+  color: #ffb020;
+}
+.badge--canceled {
+  background: var(--line);
+  color: var(--text-3);
+}
+[data-theme='dark'] .badge--pending {
+  background: #3a2e10;
+}
+
+/* Autocomplete dropdown */
+.search--autocomplete {
+  position: relative;
+}
+.autocomplete {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  box-shadow: var(--shadow-md);
+  max-height: 360px;
+  overflow-y: auto;
+}
+.autocomplete__item {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.autocomplete__item.is-active,
+.autocomplete__item:hover {
+  background: var(--line);
+}
+.autocomplete__main {
+  display: flex;
+  flex-direction: column;
+}
+.autocomplete__name {
+  font-weight: 800;
+}
+.autocomplete__meta {
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 600;
+}
 .chart .hover-dot {
   fill: var(--toss-blue);
   stroke: var(--surface);

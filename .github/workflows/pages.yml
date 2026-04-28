@@ -2,9 +2,7 @@ name: Deploy static site to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
-      - 'claude/**'
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -21,18 +19,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
 
-      - name: Lint + format check
-        run: |
-          npm install --no-audit --no-fund
-          npx eslint "**/*.js" --ignore-pattern node_modules || true
-          npx prettier --check "**/*.{js,css,html,json,md}" --ignore-path .gitignore || true
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Lint
+        run: npx eslint "assets/*.js" "script.js" "tests/*.mjs" "eslint.config.js"
+
+      - name: Format check
+        run: npx prettier --check "**/*.{js,css,html,json,md}" --ignore-path .gitignore
+
+      - name: Unit tests
+        run: node --test tests/unit.mjs
 
       - name: Stage site
         run: |
@@ -44,6 +48,8 @@ jobs:
             --exclude=tests \
             --exclude=_site \
             --exclude=package-lock.json \
+            --exclude=ROADMAP.md \
+            --exclude=CONTRIBUTING.md \
             ./ _site/
 
       - name: Upload artifact

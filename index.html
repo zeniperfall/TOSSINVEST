@@ -6,6 +6,16 @@
     <title>종목 상세 — 토스증권 스타일</title>
     <meta name="description" content="토스증권 디자인 스타일의 주식 상세 페이지 데모" />
     <meta name="theme-color" content="#3182f6" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; script-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="토스증권 스타일 데모" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="canonical" href="https://zeniperfall.github.io/TOSSINVEST/index.html" />
     <link
       rel="stylesheet"
       as="style"
@@ -25,6 +35,7 @@
           <a class="gnb__item gnb__item--active" data-page="stock" href="./index.html">주식</a>
           <a class="gnb__item" data-page="search" href="./search.html">검색</a>
           <a class="gnb__item" data-page="portfolio" href="./portfolio.html">내 자산</a>
+          <a class="gnb__item" data-page="history" href="./history.html">주문 내역</a>
         </nav>
         <div class="topbar__right">
           <label class="search">
@@ -127,11 +138,18 @@
                   <button class="range__btn" data-range="ALL">전체</button>
                 </div>
                 <div class="chart-card__legend">
+                  <div class="chart-modes" role="tablist" aria-label="차트 모드">
+                    <button class="mode-btn mode-btn--active" data-mode="line">선</button>
+                    <button class="mode-btn" data-mode="candle">캔들</button>
+                  </div>
                   <label class="toggle">
                     <input type="checkbox" id="benchmarkToggle" />
                     <span>지수 비교</span>
                   </label>
-                  <span class="dot dot--blue"></span>종가 <span class="dot dot--gray"></span>나스닥
+                  <label class="toggle">
+                    <input type="checkbox" id="maToggle" />
+                    <span>MA(20)</span>
+                  </label>
                 </div>
               </div>
               <div class="chart-wrap">
@@ -146,6 +164,13 @@
                   <div class="chart-tooltip__date" id="tooltipDate">—</div>
                   <div class="chart-tooltip__price" id="tooltipPrice">—</div>
                 </div>
+                <svg
+                  id="volumeChart"
+                  class="chart chart--volume"
+                  viewBox="0 0 720 60"
+                  preserveAspectRatio="none"
+                  aria-label="거래량 차트"
+                ></svg>
               </div>
             </div>
 
@@ -346,5 +371,6 @@
     </footer>
 
     <script type="module" src="./script.js"></script>
+    <script type="module" src="./assets/web-vitals.js"></script>
   </body>
 </html>
