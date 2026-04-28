@@ -1,6 +1,6 @@
 import { STOCKS, fmtPrice } from './data.js';
 import { wireThemeToggle, highlightNav } from './theme.js';
-import { wireLocaleToggle } from './i18n.js';
+import { wireLocaleToggle, t, onLocaleChange } from './i18n.js';
 import { wireGestures } from './gestures.js';
 import './error-reporter.js';
 import { wireAutocomplete } from './autocomplete.js';
@@ -54,9 +54,10 @@ function render(q) {
     .join('');
 
   if (matches.length === 0) {
-    resultsEl.innerHTML = `<li class="empty">'${q}' 에 대한 결과가 없어요.</li>`;
+    resultsEl.innerHTML = `<li class="empty">${t('search.empty', { q })}</li>`;
   }
 }
 
 input.addEventListener('input', e => render(e.target.value));
 render(initialQuery);
+onLocaleChange(() => render(input.value));

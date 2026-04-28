@@ -30,7 +30,11 @@
           <a class="gnb__item" data-page="search" href="./search.html" data-i18n="nav.search"
             >검색</a
           >
-          <a class="gnb__item gnb__item--active" data-page="portfolio" href="./portfolio.html"
+          <a
+            class="gnb__item gnb__item--active"
+            data-page="portfolio"
+            href="./portfolio.html"
+            data-i18n="nav.portfolio"
             >내 자산</a
           >
           <a class="gnb__item" data-page="history" href="./history.html" data-i18n="nav.history"
@@ -68,7 +72,7 @@
       <div class="container">
         <section class="card portfolio-summary">
           <div>
-            <div class="muted">총 평가 금액</div>
+            <div class="muted" data-i18n="portfolio.totalValue">총 평가 금액</div>
             <div class="portfolio-summary__value" id="totalValue">—</div>
             <div class="portfolio-summary__pnl" id="totalPnl">—</div>
           </div>
@@ -79,17 +83,17 @@
         </section>
 
         <section class="card">
-          <h2 class="card__title">보유 종목</h2>
+          <h2 class="card__title" data-i18n="portfolio.holdings">보유 종목</h2>
           <div class="table-scroll">
             <table class="holdings-table">
               <thead>
                 <tr>
-                  <th>종목</th>
-                  <th>수량</th>
-                  <th>평균 단가</th>
-                  <th>현재가</th>
-                  <th>평가 금액</th>
-                  <th>평가 손익</th>
+                  <th data-i18n="portfolio.col.stock">종목</th>
+                  <th data-i18n="portfolio.col.qty">수량</th>
+                  <th data-i18n="portfolio.col.avgPrice">평균 단가</th>
+                  <th data-i18n="portfolio.col.currentPrice">현재가</th>
+                  <th data-i18n="portfolio.col.value">평가 금액</th>
+                  <th data-i18n="portfolio.col.pnl">평가 손익</th>
                 </tr>
               </thead>
               <tbody id="holdingsBody"></tbody>
@@ -100,7 +104,7 @@
     </main>
 
     <footer class="foot">
-      <div class="foot__inner">학습용 데모 · 토스증권 디자인 스타일</div>
+      <div class="foot__inner" data-i18n="foot.demo">학습용 데모 · 토스증권 디자인 스타일</div>
     </footer>
 
     <script type="module" src="./assets/portfolio.js"></script>

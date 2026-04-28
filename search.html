@@ -75,7 +75,7 @@
     <main class="page">
       <div class="container">
         <section class="search-hero">
-          <h1>종목 검색</h1>
+          <h1 data-i18n="search.title">종목 검색</h1>
           <label class="search search--lg">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
@@ -90,21 +90,27 @@
               id="searchInput"
               type="search"
               placeholder="종목명, 티커, 또는 productCode로 검색"
+              data-i18n-placeholder="search.fullPlaceholder"
               autofocus
             />
           </label>
-          <div class="search-hint muted">예) 엔비디아, NVDA, NAS0221219002</div>
+          <div class="search-hint muted" data-i18n="search.hint">
+            예) 엔비디아, NVDA, NAS0221219002
+          </div>
         </section>
 
         <section class="card">
-          <h2 class="card__title">검색 결과 <span class="muted small" id="resultCount"></span></h2>
+          <h2 class="card__title">
+            <span data-i18n="search.results">검색 결과</span>
+            <span class="muted small" id="resultCount"></span>
+          </h2>
           <ul class="rank" id="searchResults"></ul>
         </section>
       </div>
     </main>
 
     <footer class="foot">
-      <div class="foot__inner">학습용 데모 · 토스증권 디자인 스타일</div>
+      <div class="foot__inner" data-i18n="foot.demo">학습용 데모 · 토스증권 디자인 스타일</div>
     </footer>
 
     <script type="module" src="./assets/search.js"></script>

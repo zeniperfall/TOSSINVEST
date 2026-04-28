@@ -23,6 +23,12 @@ page.on('console', msg => {
   }
 });
 
+// Force KO locale at suite start so tests that assert Korean strings work
+// regardless of Playwright's default browser language. Locale-specific tests
+// (i18n) will explicitly override and reset.
+await page.goto(`${BASE}/home.html`, { waitUntil: 'load' });
+await page.evaluate(() => localStorage.setItem('tossinvest:locale', 'ko'));
+
 // ========================== STOCK DETAIL ==========================
 console.log('--- 1. Stock detail page (NVDA, default) ---');
 await page.goto(`${BASE}/index.html?focusedProductCode=NAS0221219002`, { waitUntil: 'load' });
@@ -704,7 +710,47 @@ const docLang = await page.getAttribute('html', 'lang');
 if (docLang !== 'ja') fail('html lang attribute not updated: ' + docLang);
 else ok('html lang reflects locale');
 
-await page.evaluate(() => localStorage.removeItem('tossinvest:locale'));
+// ========================== 23b. I18N COVERAGE EXPANSION ==========================
+console.log('--- 23b. i18n coverage (hero/tabs/metrics/order) ---');
+
+// Home hero in EN.
+await page.evaluate(() => localStorage.setItem('tossinvest:locale', 'en'));
+await page.goto(`${BASE}/home.html`, { waitUntil: 'load' });
+const heroTitle = await page.textContent('.hero__title');
+const watchlistLabel = await page.textContent('#watchlistSection .card__title');
+const heroBtn = await page.textContent('.hero a.btn--primary');
+if (!/US markets/.test(heroTitle)) fail('hero title not translated: ' + heroTitle);
+else if (watchlistLabel.trim() !== 'Watchlist') fail('watchlist label not translated: ' + watchlistLabel);
+else if (!/today/i.test(heroBtn)) fail('hero CTA not translated: ' + heroBtn);
+else ok('home hero/watchlist/CTA translated');
+
+// Detail page range buttons + tabs in JA.
+await page.evaluate(() => localStorage.setItem('tossinvest:locale', 'ja'));
+await page.goto(`${BASE}/index.html?focusedProductCode=NAS0221219002`, { waitUntil: 'load' });
+await page.waitForSelector('.chart .line');
+const rangeLabels = await page.$$eval('.range__btn', els => els.map(e => e.textContent.trim()));
+const tabLabels = await page.$$eval('.tab', els => els.map(e => e.textContent.trim()));
+const placeButtonJa = await page.textContent('#placeOrder');
+const metricsFirstLabel = await page.textContent('.metrics li:first-child span');
+const aboutHeading = await page.textContent('.panel__h');
+if (!rangeLabels.includes('1日') || !rangeLabels.includes('全て'))
+  fail('range labels not JA: ' + rangeLabels.join('/'));
+else if (!tabLabels.some(s => s === '銘柄情報')) fail('tab labels not JA: ' + tabLabels.join('/'));
+else if (placeButtonJa.trim() !== '購入する') fail('place button not JA: ' + placeButtonJa);
+else if (metricsFirstLabel !== '始値') fail('metrics first label not JA: ' + metricsFirstLabel);
+else if (aboutHeading !== '企業概要') fail('about heading not JA: ' + aboutHeading);
+else ok('detail page range/tabs/place/metrics/about all JA');
+
+// History page filter chips + status badges in JA.
+await page.goto(`${BASE}/history.html`, { waitUntil: 'load' });
+const chipAll = await page.textContent('.chip[data-filter="all"]');
+const firstStatusBadge = await page.textContent('#historyBody tr:first-child .badge');
+if (chipAll.trim() !== 'すべて') fail('filter chip not JA: ' + chipAll);
+else if (firstStatusBadge.trim() !== '約定') fail('status badge not JA: ' + firstStatusBadge);
+else ok('history chips and status badges JA');
+
+// Restore KO so downstream tests/screenshots are deterministic.
+await page.evaluate(() => localStorage.setItem('tossinvest:locale', 'ko'));
 
 // ========================== 24. BACKTEST CARD ==========================
 console.log('--- 24. Backtest results ---');

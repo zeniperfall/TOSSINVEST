@@ -23,7 +23,7 @@ import {
   notify,
   crossed,
 } from './assets/notification.js';
-import { wireLocaleToggle } from './assets/i18n.js';
+import { wireLocaleToggle, t, onLocaleChange } from './assets/i18n.js';
 import { wireGestures } from './assets/gestures.js';
 import { backtest } from './assets/backtest.js';
 import './assets/error-reporter.js';
@@ -62,17 +62,17 @@ function hydrate() {
 
   // Metrics grid.
   const metrics = [
-    ['시가', fmtPrice(stock.open, stock.currency)],
-    ['고가', fmtPrice(stock.high, stock.currency)],
-    ['저가', fmtPrice(stock.low, stock.currency)],
-    ['거래량', stock.volume],
-    ['전일 종가', fmtPrice(stock.prevClose, stock.currency)],
-    ['52주 최고', fmtPrice(stock.high52, stock.currency)],
-    ['52주 최저', fmtPrice(stock.low52, stock.currency)],
-    ['시가총액', stock.marketCap],
-    ['PER', stock.per.toFixed(2)],
+    [t('detail.metric.open'), fmtPrice(stock.open, stock.currency)],
+    [t('detail.metric.high'), fmtPrice(stock.high, stock.currency)],
+    [t('detail.metric.low'), fmtPrice(stock.low, stock.currency)],
+    [t('detail.metric.volume'), stock.volume],
+    [t('detail.metric.prevClose'), fmtPrice(stock.prevClose, stock.currency)],
+    [t('detail.metric.high52'), fmtPrice(stock.high52, stock.currency)],
+    [t('detail.metric.low52'), fmtPrice(stock.low52, stock.currency)],
+    [t('detail.metric.marketCap'), stock.marketCap],
+    [t('detail.metric.per'), stock.per.toFixed(2)],
     [
-      'EPS',
+      t('detail.metric.eps'),
       stock.currency === 'KRW'
         ? Math.round(stock.eps).toLocaleString() + '원'
         : '$' + stock.eps.toFixed(2),
@@ -86,12 +86,12 @@ function hydrate() {
   // About + profile KV.
   document.getElementById('aboutText').textContent = stock.about;
   document.getElementById('profileKv').innerHTML = Object.entries({
-    대표: stock.profile.ceo,
-    본사: stock.profile.hq,
-    설립: stock.profile.founded,
-    업종: stock.profile.sector,
-    상장일: stock.profile.ipo,
-    홈페이지: stock.profile.site,
+    [t('detail.profile.ceo')]: stock.profile.ceo,
+    [t('detail.profile.hq')]: stock.profile.hq,
+    [t('detail.profile.founded')]: stock.profile.founded,
+    [t('detail.profile.sector')]: stock.profile.sector,
+    [t('detail.profile.ipo')]: stock.profile.ipo,
+    [t('detail.profile.site')]: stock.profile.site,
   })
     .map(([k, v]) => `<div><span>${k}</span><strong>${v}</strong></div>`)
     .join('');
@@ -101,11 +101,11 @@ function hydrate() {
     th.textContent = stock.financials[i]?.year || '—';
   });
   const rows = [
-    ['매출', 'rev'],
-    ['영업이익', 'op'],
-    ['순이익', 'net'],
-    ['영업이익률', 'opm'],
-    ['EPS', 'eps'],
+    [t('detail.fin.rev'), 'rev'],
+    [t('detail.fin.op'), 'op'],
+    [t('detail.fin.net'), 'net'],
+    [t('detail.fin.opm'), 'opm'],
+    [t('detail.fin.eps'), 'eps'],
   ];
   document.getElementById('finBody').innerHTML = rows
     .map(
@@ -125,7 +125,9 @@ function hydrate() {
   const held = HOLDINGS.find(h => h.code === stock.code);
   if (held) {
     document.getElementById('holdingsCard').hidden = false;
-    document.getElementById('holdingTicker').textContent = stock.ticker;
+    document.getElementById('holdingTitle').innerHTML = t('detail.holding', {
+      ticker: `<span id="holdingTicker">${stock.ticker}</span>`,
+    });
     document.getElementById('holdingQty').textContent = held.qty + '주';
     document.getElementById('holdingAvg').textContent = fmtPrice(held.avgPrice, stock.currency);
     const value = held.qty * stock.price;
@@ -448,12 +450,12 @@ function renderBacktest(range) {
   if (!el || !r) return;
   const upClass = v => (v >= 0 ? 'up' : 'down');
   el.innerHTML = `
-    <div><span>총 수익률</span><strong class="${upClass(r.totalReturn)}">${r.totalReturn >= 0 ? '+' : ''}${r.totalReturn.toFixed(2)}%</strong></div>
-    <div><span>최대 낙폭(MDD)</span><strong class="down">${r.maxDrawdown.toFixed(2)}%</strong></div>
-    <div><span>변동성 (연환산)</span><strong>${r.volatility.toFixed(2)}%</strong></div>
-    <div><span>샤프 비율</span><strong class="${upClass(r.sharpe)}">${r.sharpe.toFixed(2)}</strong></div>
-    <div><span>구간 시작</span><strong>${fmtPrice(r.start, stock.currency)}</strong></div>
-    <div><span>구간 종료</span><strong>${fmtPrice(r.end, stock.currency)}</strong></div>
+    <div><span>${t('detail.bt.totalReturn')}</span><strong class="${upClass(r.totalReturn)}">${r.totalReturn >= 0 ? '+' : ''}${r.totalReturn.toFixed(2)}%</strong></div>
+    <div><span>${t('detail.bt.mdd')}</span><strong class="down">${r.maxDrawdown.toFixed(2)}%</strong></div>
+    <div><span>${t('detail.bt.volatility')}</span><strong>${r.volatility.toFixed(2)}%</strong></div>
+    <div><span>${t('detail.bt.sharpe')}</span><strong class="${upClass(r.sharpe)}">${r.sharpe.toFixed(2)}</strong></div>
+    <div><span>${t('detail.bt.start')}</span><strong>${fmtPrice(r.start, stock.currency)}</strong></div>
+    <div><span>${t('detail.bt.end')}</span><strong>${fmtPrice(r.end, stock.currency)}</strong></div>
   `;
 }
 
@@ -466,6 +468,20 @@ document.querySelectorAll('.range__btn').forEach(btn => {
 });
 
 renderAll(currentRange);
+
+// Re-render i18n-dependent dynamic content when locale changes.
+onLocaleChange(() => {
+  hydrate();
+  renderBacktest(currentRange);
+  // Sync place button text to current side.
+  const activeOrderTab = document.querySelector('.order-tab--active');
+  if (activeOrderTab && document.getElementById('placeOrder')) {
+    const isBuy = activeOrderTab.dataset.side === 'buy';
+    document.getElementById('placeOrder').textContent = isBuy
+      ? t('order.placeBuy')
+      : t('order.placeSell');
+  }
+});
 
 // ----- Order book -----
 function renderOrderBook() {
@@ -582,10 +598,10 @@ document.querySelectorAll('.quick button[data-pct]').forEach(b => {
 
 orderTabs.forEach(tab => {
   tab.addEventListener('click', () => {
-    orderTabs.forEach(t => t.classList.remove('order-tab--active'));
+    orderTabs.forEach(o => o.classList.remove('order-tab--active'));
     tab.classList.add('order-tab--active');
     const isBuy = tab.dataset.side === 'buy';
-    placeBtn.textContent = isBuy ? '구매하기' : '판매하기';
+    placeBtn.textContent = isBuy ? t('order.placeBuy') : t('order.placeSell');
     placeBtn.classList.toggle('btn--sell', !isBuy);
   });
 });
@@ -607,11 +623,14 @@ placeBtn.addEventListener('click', () => {
   }
   const isBuy = document.querySelector('.order-tab--active').dataset.side === 'buy';
   const total = price * qty;
-  placeBtn.textContent = `${isBuy ? '구매' : '판매'} 주문 접수됨 · ${fmtPrice(total, stock.currency)}`;
+  placeBtn.textContent =
+    (isBuy ? t('order.acceptedBuy') : t('order.acceptedSell')) +
+    ' · ' +
+    fmtPrice(total, stock.currency);
   placeBtn.disabled = true;
   setTimeout(() => {
     placeBtn.disabled = false;
-    placeBtn.textContent = isBuy ? '구매하기' : '판매하기';
+    placeBtn.textContent = isBuy ? t('order.placeBuy') : t('order.placeSell');
   }, 1800);
 });
 

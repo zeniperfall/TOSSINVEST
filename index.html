@@ -101,7 +101,7 @@
             </div>
           </div>
           <div class="stock-head__right">
-            <button class="iconbtn" aria-label="알림">
+            <button class="iconbtn" aria-label="알림" data-i18n-aria="aria.notify">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M6 9a6 6 0 1 1 12 0c0 4 1.5 5.5 2 6H4c.5-.5 2-2 2-6Z"
@@ -117,7 +117,7 @@
                 />
               </svg>
             </button>
-            <button class="iconbtn" aria-label="공유">
+            <button class="iconbtn" aria-label="공유" data-i18n-aria="aria.share">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v14"
@@ -128,7 +128,7 @@
                 />
               </svg>
             </button>
-            <button class="iconbtn iconbtn--star" aria-label="관심 등록">
+            <button class="iconbtn iconbtn--star" aria-label="관심 등록" data-i18n-aria="aria.star">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path
                   d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9L12 3Z"
@@ -146,26 +146,46 @@
             <div class="card chart-card">
               <div class="chart-card__head">
                 <div class="range" role="tablist" aria-label="기간 선택">
-                  <button class="range__btn" data-range="1D">1일</button>
-                  <button class="range__btn range__btn--active" data-range="1W">1주</button>
-                  <button class="range__btn" data-range="1M">1개월</button>
-                  <button class="range__btn" data-range="3M">3개월</button>
-                  <button class="range__btn" data-range="1Y">1년</button>
-                  <button class="range__btn" data-range="5Y">5년</button>
-                  <button class="range__btn" data-range="ALL">전체</button>
+                  <button class="range__btn" data-range="1D" data-i18n="chart.range.1D">1일</button>
+                  <button
+                    class="range__btn range__btn--active"
+                    data-range="1W"
+                    data-i18n="chart.range.1W"
+                  >
+                    1주
+                  </button>
+                  <button class="range__btn" data-range="1M" data-i18n="chart.range.1M">
+                    1개월
+                  </button>
+                  <button class="range__btn" data-range="3M" data-i18n="chart.range.3M">
+                    3개월
+                  </button>
+                  <button class="range__btn" data-range="1Y" data-i18n="chart.range.1Y">1년</button>
+                  <button class="range__btn" data-range="5Y" data-i18n="chart.range.5Y">5년</button>
+                  <button class="range__btn" data-range="ALL" data-i18n="chart.range.ALL">
+                    전체
+                  </button>
                 </div>
                 <div class="chart-card__legend">
                   <div class="chart-modes" role="tablist" aria-label="차트 모드">
-                    <button class="mode-btn mode-btn--active" data-mode="line">선</button>
-                    <button class="mode-btn" data-mode="candle">캔들</button>
+                    <button
+                      class="mode-btn mode-btn--active"
+                      data-mode="line"
+                      data-i18n="chart.mode.line"
+                    >
+                      선
+                    </button>
+                    <button class="mode-btn" data-mode="candle" data-i18n="chart.mode.candle">
+                      캔들
+                    </button>
                   </div>
                   <label class="toggle">
                     <input type="checkbox" id="benchmarkToggle" />
-                    <span>지수 비교</span>
+                    <span data-i18n="chart.toggleBenchmark">지수 비교</span>
                   </label>
                   <label class="toggle">
                     <input type="checkbox" id="maToggle" />
-                    <span>MA(20)</span>
+                    <span data-i18n="chart.toggleMA">MA(20)</span>
                   </label>
                 </div>
               </div>
@@ -192,36 +212,75 @@
             </div>
 
             <div class="card metrics-card">
-              <h2 class="card__title">시세 정보</h2>
+              <h2 class="card__title" data-i18n="detail.metrics">시세 정보</h2>
               <ul class="metrics" id="metrics"></ul>
             </div>
 
             <div class="card backtest-card">
-              <h2 class="card__title">백테스트 (현재 차트 기간)</h2>
-              <p class="muted">현재 선택된 기간을 매수 후 보유했을 때의 결과예요.</p>
+              <h2 class="card__title" data-i18n="detail.backtest">백테스트 (현재 차트 기간)</h2>
+              <p class="muted" data-i18n="detail.backtestSub">
+                현재 선택된 기간을 매수 후 보유했을 때의 결과예요.
+              </p>
               <div class="backtest" id="backtest"></div>
             </div>
 
             <div class="card holdings-card" id="holdingsCard" hidden>
-              <h2 class="card__title">내가 보유한 <span id="holdingTicker">NVDA</span></h2>
+              <h2 class="card__title" id="holdingTitle">
+                내가 보유한 <span id="holdingTicker">NVDA</span>
+              </h2>
               <div class="holdings">
-                <div><span>보유 수량</span><strong id="holdingQty">0주</strong></div>
-                <div><span>평균 단가</span><strong id="holdingAvg">—</strong></div>
-                <div><span>평가 금액</span><strong id="holdingValue">—</strong></div>
-                <div><span>평가 손익</span><strong id="holdingPnl" class="up">—</strong></div>
+                <div>
+                  <span data-i18n="detail.holding.qty">보유 수량</span>
+                  <strong id="holdingQty">0주</strong>
+                </div>
+                <div>
+                  <span data-i18n="detail.holding.avg">평균 단가</span>
+                  <strong id="holdingAvg">—</strong>
+                </div>
+                <div>
+                  <span data-i18n="detail.holding.value">평가 금액</span>
+                  <strong id="holdingValue">—</strong>
+                </div>
+                <div>
+                  <span data-i18n="detail.holding.pnl">평가 손익</span>
+                  <strong id="holdingPnl" class="up">—</strong>
+                </div>
               </div>
             </div>
 
             <div class="card tabs-card">
               <div class="tabs" role="tablist">
-                <button class="tab tab--active" data-tab="overview" role="tab">종목정보</button>
-                <button class="tab" data-tab="news" role="tab">뉴스</button>
-                <button class="tab" data-tab="community" role="tab">커뮤니티</button>
-                <button class="tab" data-tab="financials" role="tab">재무</button>
+                <button
+                  class="tab tab--active"
+                  data-tab="overview"
+                  role="tab"
+                  data-i18n="detail.tab.overview"
+                >
+                  종목정보
+                </button>
+                <button class="tab" data-tab="news" role="tab" data-i18n="detail.tab.news">
+                  뉴스
+                </button>
+                <button
+                  class="tab"
+                  data-tab="community"
+                  role="tab"
+                  data-i18n="detail.tab.community"
+                >
+                  커뮤니티
+                </button>
+                <button
+                  class="tab"
+                  data-tab="financials"
+                  role="tab"
+                  data-i18n="detail.tab.financials"
+                >
+                  재무
+                </button>
               </div>
 
               <div class="tab-panel" data-panel="overview">
-                <h3 class="panel__h">기업 개요</h3>
+                <h3 class="panel__h" data-i18n="detail.about">기업 개요</h3>
                 <p class="panel__p" id="aboutText">—</p>
                 <div class="kv" id="profileKv"></div>
               </div>
@@ -299,7 +358,7 @@
                   <table class="fin">
                     <thead>
                       <tr>
-                        <th>항목</th>
+                        <th data-i18n="detail.fin.label">항목</th>
                         <th data-fin="0">—</th>
                         <th data-fin="1">—</th>
                         <th data-fin="2">—</th>
@@ -314,24 +373,34 @@
 
           <aside class="side-col">
             <div class="card orderbook-card">
-              <h3 class="card__title">호가</h3>
+              <h3 class="card__title" data-i18n="order.book">호가</h3>
               <div class="orderbook" id="orderbook"></div>
             </div>
 
             <div class="card order-card">
               <div class="order-tabs">
-                <button class="order-tab order-tab--buy order-tab--active" data-side="buy">
+                <button
+                  class="order-tab order-tab--buy order-tab--active"
+                  data-side="buy"
+                  data-i18n="order.tab.buy"
+                >
                   구매
                 </button>
-                <button class="order-tab order-tab--sell" data-side="sell">판매</button>
+                <button
+                  class="order-tab order-tab--sell"
+                  data-side="sell"
+                  data-i18n="order.tab.sell"
+                >
+                  판매
+                </button>
               </div>
 
               <div class="order-row">
-                <label>주문 유형</label>
+                <label data-i18n="order.type">주문 유형</label>
                 <select class="select">
-                  <option>지정가</option>
-                  <option>시장가</option>
-                  <option>예약 주문</option>
+                  <option data-i18n="order.type.limit">지정가</option>
+                  <option data-i18n="order.type.market">시장가</option>
+                  <option data-i18n="order.type.reserved">예약 주문</option>
                 </select>
               </div>
 
@@ -351,7 +420,7 @@
               </div>
 
               <div class="order-row">
-                <label>수량</label>
+                <label data-i18n="order.qty">수량</label>
                 <div class="stepper">
                   <button class="stepper__btn" data-qty="-1" aria-label="감소">−</button>
                   <input
@@ -373,23 +442,35 @@
               </div>
 
               <div class="summary">
-                <div><span>예상 체결금액</span><strong id="orderTotal">—</strong></div>
-                <div><span>주문 가능 금액</span><strong id="cashAvail">—</strong></div>
+                <div>
+                  <span data-i18n="order.expectedTotal">예상 체결금액</span
+                  ><strong id="orderTotal">—</strong>
+                </div>
+                <div>
+                  <span data-i18n="order.cashAvail">주문 가능 금액</span
+                  ><strong id="cashAvail">—</strong>
+                </div>
               </div>
 
-              <button class="btn btn--primary btn--lg" id="placeOrder">구매하기</button>
+              <button class="btn btn--primary btn--lg" id="placeOrder" data-i18n="order.placeBuy">
+                구매하기
+              </button>
               <p class="disclaimer">
-                시세는 약 15분 지연될 수 있어요. 본 화면은 디자인 예시입니다.
+                <span data-i18n="order.disclaimer"
+                  >시세는 약 15분 지연될 수 있어요. 본 화면은 디자인 예시입니다.</span
+                >
               </p>
             </div>
 
             <div class="card alert-card">
-              <h3 class="card__title">목표가 알림</h3>
-              <p class="muted">설정한 가격에 도달하면 브라우저 알림으로 알려드려요.</p>
+              <h3 class="card__title" data-i18n="alert.title">목표가 알림</h3>
+              <p class="muted" data-i18n="alert.sub">
+                설정한 가격에 도달하면 브라우저 알림으로 알려드려요.
+              </p>
               <div class="alert-row">
                 <select id="alertDirection" class="select" style="width: 90px">
-                  <option value="above">이상</option>
-                  <option value="below">이하</option>
+                  <option value="above" data-i18n="alert.above">이상</option>
+                  <option value="below" data-i18n="alert.below">이하</option>
                 </select>
                 <input
                   class="input"
@@ -397,8 +478,9 @@
                   type="text"
                   inputmode="decimal"
                   placeholder="예) 1000"
+                  data-i18n-placeholder="alert.placeholder"
                 />
-                <button class="btn btn--ghost" id="alertAddBtn">설정</button>
+                <button class="btn btn--ghost" id="alertAddBtn" data-i18n="alert.add">설정</button>
               </div>
               <ul class="alert-list" id="alertList"></ul>
             </div>
@@ -409,7 +491,10 @@
 
     <footer class="foot">
       <div class="foot__inner">
-        본 페이지는 토스증권 디자인 스타일의 학습용 데모입니다. 실제 투자에 사용하지 마세요.
+        <span data-i18n="foot.long"
+          >본 페이지는 토스증권 디자인 스타일의 학습용 데모입니다. 실제 투자에 사용하지
+          마세요.</span
+        >
       </div>
     </footer>
 

@@ -78,11 +78,16 @@
       <div class="container">
         <section class="hero">
           <div>
-            <div class="hero__eyebrow">오늘의 시장</div>
-            <h1 class="hero__title">미국장이 강하게 출발했어요</h1>
-            <p class="hero__sub">AI 반도체 섹터를 중심으로 매수세가 유입되고 있습니다.</p>
+            <div class="hero__eyebrow" data-i18n="home.heroEyebrow">오늘의 시장</div>
+            <h1 class="hero__title" data-i18n="home.heroTitle">미국장이 강하게 출발했어요</h1>
+            <p class="hero__sub" data-i18n="home.heroSub">
+              AI 반도체 섹터를 중심으로 매수세가 유입되고 있습니다.
+            </p>
           </div>
-          <a class="btn btn--primary" href="./index.html?focusedProductCode=NAS0221219002"
+          <a
+            class="btn btn--primary"
+            href="./index.html?focusedProductCode=NAS0221219002"
+            data-i18n="home.todaysStock"
             >오늘의 종목 보기 →</a
           >
         </section>
@@ -91,7 +96,7 @@
 
         <section class="card" id="watchlistSection">
           <div class="card__row">
-            <h2 class="card__title" style="margin: 0">관심 종목</h2>
+            <h2 class="card__title" style="margin: 0" data-i18n="home.watchlist">관심 종목</h2>
             <span class="muted small" id="watchlistCount"></span>
           </div>
           <ul class="rank" id="watchlist"></ul>
@@ -99,19 +104,21 @@
 
         <section class="card">
           <div class="card__row">
-            <h2 class="card__title" style="margin: 0">실시간 인기 종목</h2>
-            <span class="muted">상위 5개</span>
+            <h2 class="card__title" style="margin: 0" data-i18n="home.trending">
+              실시간 인기 종목
+            </h2>
+            <span class="muted" data-i18n="home.top5">상위 5개</span>
           </div>
           <ul class="rank" id="trending"></ul>
         </section>
 
         <section class="grid grid--2col">
           <div class="card">
-            <h2 class="card__title">상승 종목</h2>
+            <h2 class="card__title" data-i18n="home.gainers">상승 종목</h2>
             <ul class="movers" id="gainers"></ul>
           </div>
           <div class="card">
-            <h2 class="card__title">하락 종목</h2>
+            <h2 class="card__title" data-i18n="home.losers">하락 종목</h2>
             <ul class="movers" id="losers"></ul>
           </div>
         </section>
@@ -119,7 +126,7 @@
     </main>
 
     <footer class="foot">
-      <div class="foot__inner">학습용 데모 · 토스증권 디자인 스타일</div>
+      <div class="foot__inner" data-i18n="foot.demo">학습용 데모 · 토스증권 디자인 스타일</div>
     </footer>
 
     <script type="module" src="./assets/home.js"></script>

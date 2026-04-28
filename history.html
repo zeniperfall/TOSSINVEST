@@ -42,7 +42,11 @@
             data-i18n="nav.portfolio"
             >내 자산</a
           >
-          <a class="gnb__item gnb__item--active" data-page="history" href="./history.html"
+          <a
+            class="gnb__item gnb__item--active"
+            data-page="history"
+            href="./history.html"
+            data-i18n="nav.history"
             >주문 내역</a
           >
         </nav>
@@ -76,30 +80,37 @@
     <main class="page">
       <div class="container">
         <section class="search-hero">
-          <h1>주문 내역</h1>
+          <h1 data-i18n="history.title">주문 내역</h1>
           <div class="filter-row">
-            <button class="chip chip--active" data-filter="all">전체</button>
-            <button class="chip" data-filter="체결">체결</button>
-            <button class="chip" data-filter="미체결">미체결</button>
-            <button class="chip" data-filter="취소">취소</button>
-            <button class="chip" data-filter="buy">구매</button>
-            <button class="chip" data-filter="sell">판매</button>
+            <button class="chip chip--active" data-filter="all" data-i18n="history.filterAll">
+              전체
+            </button>
+            <button class="chip" data-filter="체결" data-i18n="history.filterFilled">체결</button>
+            <button class="chip" data-filter="미체결" data-i18n="history.filterPending">
+              미체결
+            </button>
+            <button class="chip" data-filter="취소" data-i18n="history.filterCanceled">취소</button>
+            <button class="chip" data-filter="buy" data-i18n="history.filterBuy">구매</button>
+            <button class="chip" data-filter="sell" data-i18n="history.filterSell">판매</button>
           </div>
         </section>
 
         <section class="card">
-          <h2 class="card__title">내역 <span class="muted small" id="historyCount"></span></h2>
+          <h2 class="card__title">
+            <span data-i18n="history.heading">내역</span>
+            <span class="muted small" id="historyCount"></span>
+          </h2>
           <div class="table-scroll">
             <table class="holdings-table" id="historyTable">
               <thead>
                 <tr>
-                  <th>주문 시각</th>
-                  <th>종목</th>
-                  <th>구분</th>
-                  <th>유형</th>
-                  <th>수량</th>
-                  <th>주문 가격</th>
-                  <th>상태</th>
+                  <th data-i18n="history.col.placedAt">주문 시각</th>
+                  <th data-i18n="portfolio.col.stock">종목</th>
+                  <th data-i18n="history.col.side">구분</th>
+                  <th data-i18n="history.col.type">유형</th>
+                  <th data-i18n="portfolio.col.qty">수량</th>
+                  <th data-i18n="history.col.price">주문 가격</th>
+                  <th data-i18n="history.col.status">상태</th>
                 </tr>
               </thead>
               <tbody id="historyBody"></tbody>
@@ -110,7 +121,7 @@
     </main>
 
     <footer class="foot">
-      <div class="foot__inner">학습용 데모 · 토스증권 디자인 스타일</div>
+      <div class="foot__inner" data-i18n="foot.demo">학습용 데모 · 토스증권 디자인 스타일</div>
     </footer>
 
     <script type="module" src="./assets/history.js"></script>

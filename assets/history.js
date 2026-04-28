@@ -1,6 +1,6 @@
 import { STOCKS, ORDER_HISTORY, fmtPrice } from './data.js';
 import { wireThemeToggle, highlightNav } from './theme.js';
-import { wireLocaleToggle } from './i18n.js';
+import { wireLocaleToggle, t, onLocaleChange } from './i18n.js';
 import { wireGestures } from './gestures.js';
 import './error-reporter.js';
 import { wireAutocomplete } from './autocomplete.js';
@@ -34,8 +34,20 @@ function render() {
   body.innerHTML = matches
     .map(o => {
       const s = STOCKS[o.code];
-      const sideLabel = o.side === 'buy' ? '구매' : '판매';
+      const sideLabel = o.side === 'buy' ? t('history.filterBuy') : t('history.filterSell');
       const sideClass = o.side === 'buy' ? 'up' : 'down';
+      const statusLabel =
+        o.status === '체결'
+          ? t('history.filterFilled')
+          : o.status === '미체결'
+            ? t('history.filterPending')
+            : t('history.filterCanceled');
+      const typeLabel =
+        o.type === '지정가'
+          ? t('order.type.limit')
+          : o.type === '시장가'
+            ? t('order.type.market')
+            : t('order.type.reserved');
       return `
         <tr>
           <td>
@@ -52,16 +64,16 @@ function render() {
             </a>
           </td>
           <td class="${sideClass}"><strong>${sideLabel}</strong></td>
-          <td>${o.type}</td>
-          <td>${o.qty.toLocaleString()}주</td>
+          <td>${typeLabel}</td>
+          <td>${o.qty.toLocaleString()}</td>
           <td>${fmtPrice(o.price, s?.currency ?? 'USD')}</td>
-          <td><span class="${statusClass(o.status)}">${o.status}</span></td>
+          <td><span class="${statusClass(o.status)}">${statusLabel}</span></td>
         </tr>`;
     })
     .join('');
 
   if (matches.length === 0) {
-    body.innerHTML = `<tr><td colspan="7" class="empty">해당 조건의 주문이 없어요.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="7" class="empty">${t('history.empty')}</td></tr>`;
   }
 }
 
@@ -75,3 +87,4 @@ document.querySelectorAll('.chip').forEach(chip => {
 });
 
 render();
+onLocaleChange(render);
